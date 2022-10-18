@@ -15,6 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from mecanum_wheel.encoder_stream_test import SerialPort
 from support.pymf import get_MF_devices as get_camera_list
 
+
 class RecordData:
     def __init__(self, _pth = None, record = True):
 
@@ -122,10 +123,10 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_8", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_18", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
 
     record_data = RecordData(_pth=_pth)
-    record_data.run(cart_sensors=False)
+    record_data.run(cart_sensors=True)
