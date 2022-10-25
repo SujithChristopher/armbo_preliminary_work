@@ -123,7 +123,7 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_18", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_21", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
