@@ -17,7 +17,7 @@ from support.pymf import get_MF_devices as get_camera_list
 
 
 class RecordData:
-    def __init__(self, _pth = None, record = True):
+    def __init__(self, _pth = None, record_camera = True):
 
         self.device_list = get_camera_list()
         self.cam_device = self.device_list.index("e2eSoft iVCam")
@@ -28,7 +28,7 @@ class RecordData:
 
         self.xPos = 274 # fixed parameters
         self.yPos = 112
-        self.record = record
+        self.record_camera = record_camera
         self.start_recording = False
         self._pth = _pth
         self.kill_signal = False
@@ -44,7 +44,7 @@ class RecordData:
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         cap.set(cv2.CAP_PROP_FPS, 15)
 
-        if self.record:
+        if self.record_camera:
             _save_pth = os.path.join(self._pth, "webcam_color.msgpack")
             _save_file = open(_save_pth, "wb")
             _timestamp_file = open(os.path.join(self._pth, "webcam_timestamp.msgpack"), "wb")
@@ -55,7 +55,7 @@ class RecordData:
                 gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 gray_image = gray_image[self.yPos:self.yPos + self.yResRs, self.xPos:self.xPos + self.xResRs].copy()
 
-                if self.record and self.start_recording:
+                if self.record_camera and self.start_recording:
                     _packed_file = mp.packb(gray_image, default=mpn.encode)
                     _save_file.write(_packed_file)
                     _time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -73,7 +73,7 @@ class RecordData:
                     cap.release()
                     cv2.destroyAllWindows()                
                     # self.kill_thread()  # finishing the loop
-                    if self.record:
+                    if self.record_camera:
                         _save_file.close()
                         _timestamp_file.close()
                     break
@@ -87,7 +87,7 @@ class RecordData:
         """run the program"""
         # run the program
 
-        if not cart_sensors:
+        if not cart_sensors and self.record_camera:
 
             webcam_capture_frame = multiprocessing.Process(target=self.capture_webcam)
             webcam_capture_frame.start()
@@ -96,8 +96,13 @@ class RecordData:
             if self.kill_signal:
                 print("killing the process")
             
+        if cart_sensors and not self.record_camera:
 
-        if cart_sensors and self.record:
+            myport = SerialPort("COM6", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
+            cart_sensors = Thread(target=myport.run_program)
+            cart_sensors.start()
+
+        if cart_sensors and self.record_camera:
 
             myport = SerialPort("COM6", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
             cart_sensors = Thread(target=myport.run_program)
@@ -116,17 +121,19 @@ class RecordData:
 if __name__ == "__main__":
 
     """Enter the respective parameters"""
-    record = True
-    if record:
+    record_camera = False
+    record_sensors = True
+
+    if record_camera or record_sensors:
         _name = input("Enter the name of the recording: ")
     display = True
     _pth = None # this is default do not change, path gets updated by your input
 
-    if record:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_21", _name)
+    if record_camera or record_sensors:
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_25", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
 
-    record_data = RecordData(_pth=_pth)
-    record_data.run(cart_sensors=True)
+    record_data = RecordData(_pth=_pth, record_camera=record_camera)
+    record_data.run(cart_sensors=record_sensors)

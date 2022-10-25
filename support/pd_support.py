@@ -35,6 +35,11 @@ def read_df_csv(filename, offset=2):
         col_names.append(markers_raw[i].split(":")[1])
 
     df_headers = ["frame", "seconds"]
+
+    for id, i in enumerate(col_names):
+        if not i.islower():
+            col_names[id] = i.lower()
+    
     for i in col_names:
         df_headers.append(i + "_x")
         df_headers.append(i + "_y")
