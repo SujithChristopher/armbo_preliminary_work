@@ -1,4 +1,3 @@
-from ast import arg
 from zeep import Client
 
 
@@ -92,4 +91,4 @@ args = {
 client = Client("https://clin.cmcvellore.ac.in/TestConference/conferencepay.asmx?wsdl")
 
 
-response = client.service.sendData(userName, password, args)
+response = client.service.NEWCONFONLINEPAYSAVE(args=args)

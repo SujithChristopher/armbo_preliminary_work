@@ -106,7 +106,7 @@ url = "https://clin.cmcvellore.ac.in/testconference/ConferencePay.asmx"
 
 
 headers = {
-    "userdetails":{"userName":userName,"password":password,"program":apno},
+    "UserDetails":{"userName":userName,"password":password,"program":apno},
 }
 # POST request
 response = requests.request("POST", url, headers=headers, data=payload)
