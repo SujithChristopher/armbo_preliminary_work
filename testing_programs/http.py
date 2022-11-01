@@ -1,7 +1,9 @@
-
-
-# importing the requests library
 import requests
+# SOAP request URL
+  
+# structured XML
+
+
 paymode = "PAYU"
 userName = "CNOAPMI"
 password = "dYRsJ7rt"
@@ -45,65 +47,14 @@ inp7 = ""
 inp8 = ""
 inp9 = ""
 inp10 = ""
-
-args = {
-        "conferencecode": conferenct,
-        "conferenceyear": conferenceyear,
-        "bankname": paymode,
-        "remoteip": remoteip,
-        "regno": apno,
-        "candidatename": name,
-        "nameinreceipt": name,
-        "address1": address,
-        "address2": adress1,
-        "city": city,
-        "state": state,
-        "country": country,
-        "pincode": pincode,
-        "phone": phone,
-        "mobile": mob,
-        "email": email,
-        "foodtype": foodtype,
-        "participanttype": participanttype,
-        "practicetype": practicetype,
-        "accompanymembers": members,
-        "paymentamount": "100",
-        "ToWards": tods,
-        "Allow80G": all80,
-        "PanCardNo": pan,
-        "hasgst": hast,
-        "GSTReg": gst,
-        "gstnumber": gst1,
-        "gstmobileno": gst2,
-        "gstemailid": gst3,
-        "inputcaption1": inp1,
-        "inputvalue1": inp2,
-        "inputcaption2": inp3,
-        "inputvalue2": inp4,
-        "inputcaption3": inp5,
-        "inputvalue3": inp6,
-        "inputcaption4": inp7,
-        "inputvalue4": inp8,
-        "inputcaption5": inp9,
-        "inputvalue5": inp10
-    }
-
-# structured XML
 payload = f"""
-
-POST /testconference/ConferencePay.asmx HTTP/1.1
-Host: clin.cmcvellore.ac.in
-Content-Type: text/xml; charset=utf-8
-Content-Length: length
-SOAPAction: "http://www.cmch-vellore.edu/NEWCONFONLINEPAYSAVE"
-
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header>
     <UserDetails xmlns="http://www.cmch-vellore.edu/">
-      <userName>string</userName>
-      <password>string</password>
-      <program>string</program>
+      <userName>{userName}</userName>
+      <password>{password}</password>
+      <program>{apno}</program>
     </UserDetails>
   </soap:Header>
   <soap:Body>
@@ -128,7 +79,7 @@ SOAPAction: "http://www.cmch-vellore.edu/NEWCONFONLINEPAYSAVE"
       <participanttype>string</participanttype>
       <practicetype>string</practicetype>
       <accompanymembers>string</accompanymembers>
-      <paymentamount>string</paymentamount>
+      <paymentamount>100</paymentamount>
       <ToWards>string</ToWards>
       <Allow80G>string</Allow80G>
       <PanCardNo>string</PanCardNo>
@@ -150,24 +101,15 @@ SOAPAction: "http://www.cmch-vellore.edu/NEWCONFONLINEPAYSAVE"
     </NEWCONFONLINEPAYSAVE>
   </soap:Body>
 </soap:Envelope>"""
-# headers
 
-# api-endpoint
-URL = "https://clin.cmcvellore.ac.in/testconference/ConferencePay.asmx?op=NEWCONFONLINEPAYSAVE"
-  
-# location given here
+url = "https://clin.cmcvellore.ac.in/testconference/ConferencePay.asmx"
 
-# defining a params dict for the parameters to be sent to the API
-PARAMS = args
-  
-# sending get request and saving the response as response object
-r = requests.get(url = URL, params = PARAMS)
-# r = requests.post(url = URL, data = PARAMS)
-# r = requests.get("POST", URL, headers="headers", data=payload)
 
-# print(
-# requests.Response(url = URL, params = PARAMS)
-# extracting data in json format
-# data = r.json()
-print(r.text)
-  
+headers = {
+    "userdetails":{"userName":userName,"password":password,"program":apno},
+}
+# POST request
+response = requests.request("POST", url, headers=headers, data=payload)
+# prints the response
+print(response.text)
+print(response)
