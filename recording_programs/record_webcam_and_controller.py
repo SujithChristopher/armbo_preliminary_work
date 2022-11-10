@@ -98,13 +98,13 @@ class RecordData:
             
         if cart_sensors and not self.record_camera:
 
-            myport = SerialPort("COM6", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
+            myport = SerialPort("COM16", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
             cart_sensors = Thread(target=myport.run_program)
             cart_sensors.start()
 
         if cart_sensors and self.record_camera:
 
-            myport = SerialPort("COM6", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
+            myport = SerialPort("COM16", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
             cart_sensors = Thread(target=myport.run_program)
             webcam_capture_frame = multiprocessing.Process(target=self.capture_webcam)
             
@@ -114,7 +114,6 @@ class RecordData:
             cart_sensors.join()
             webcam_capture_frame.join()
     
-
             if self.kill_signal:
                 print("killing the process")
 
@@ -130,7 +129,7 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record_camera or record_sensors:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_oct_25", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_nov_10", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
