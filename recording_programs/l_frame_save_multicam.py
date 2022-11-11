@@ -26,6 +26,7 @@ import multiprocessing
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from mecanum_wheel.encoder_stream_test import SerialPort
 from support.pymf import get_MF_devices as get_camera_list
+from support.detect_lframe import *
 
 from threading import Thread
 import keyboard
@@ -73,7 +74,6 @@ class MultiSensorRecorder:
         if self.record:
             _save_pth = os.path.join(self._pth, "kinect_color.msgpack")
             _save_file = open(_save_pth, "wb")
-            _timestamp_file = open(os.path.join(self._pth, "kinect_timestamp.msgpack"), "wb")
 
         
         while True:
@@ -86,9 +86,7 @@ class MultiSensorRecorder:
                 if self.record and self.start_recording:
                     _packed_file = mp.packb(frame, default=mpn.encode)
                     _save_file.write(_packed_file)
-                    _time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                    _packed_timestamp = mp.packb(_time_stamp)
-                    _timestamp_file.write(_packed_timestamp)
+                    break
 
 
                 fpstimer.FPSTimer(self.fps_val)
@@ -112,7 +110,6 @@ class MultiSensorRecorder:
 
         if self.record:
             _save_file.close()
-            _timestamp_file.close()
 
 
     def rs_capture_frame(self):
@@ -129,7 +126,6 @@ class MultiSensorRecorder:
         if self.record:
             _save_pth = os.path.join(self._pth, "realsense_color.msgpack")
             _save_file = open(_save_pth, "wb")
-            _timestamp_file = open(os.path.join(self._pth, "realsense_timestamp.msgpack"), "wb")
         
         while True:
             frames = pipeline.wait_for_frames()
@@ -141,9 +137,8 @@ class MultiSensorRecorder:
             if self.record and self.start_recording:
                 _packed_file = mp.packb(gray_image, default=mpn.encode)
                 _save_file.write(_packed_file)
-                _time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                _packed_timestamp = mp.packb(_time_stamp)
-                _timestamp_file.write(_packed_timestamp)
+                break
+
 
             fpstimer.FPSTimer(self.fps_val)
 
@@ -170,7 +165,6 @@ class MultiSensorRecorder:
 
         if self.record:
             _save_file.close()
-            _timestamp_file.close()
 
     def capture_webcam(self):
         """capture webcam"""
@@ -184,7 +178,6 @@ class MultiSensorRecorder:
         if self.record:
             _save_pth = os.path.join(self._pth, "webcam_color.msgpack")
             _save_file = open(_save_pth, "wb")
-            _timestamp_file = open(os.path.join(self._pth, "webcam_timestamp.msgpack"), "wb")
 
         while True:
             ret, frame = cap.read()
@@ -194,9 +187,7 @@ class MultiSensorRecorder:
             if self.record and self.start_recording:
                 _packed_file = mp.packb(gray_image, default=mpn.encode)
                 _save_file.write(_packed_file)
-                _time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                _packed_timestamp = mp.packb(_time_stamp)
-                _timestamp_file.write(_packed_timestamp)
+                break
 
             fpstimer.FPSTimer(self.fps_val)
 
@@ -211,7 +202,6 @@ class MultiSensorRecorder:
                 self.kill_thread()  # finishing the loop
                 if self.record:
                     _save_file.close()
-                    _timestamp_file.close()
                 break
             
             if keyboard.is_pressed('s'):  # if key 's' is pressed
@@ -245,36 +235,8 @@ class MultiSensorRecorder:
 
 
             if self.kill_signal:
-                # kinect_capture_frame.terminate()
-                # rs_capture_frame.terminate()
                 print("killing the process")
 
-        if cart_sensors:
-
-            myport = SerialPort("COM4", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
-            cart_sensors = Thread(target=myport.run_program)
-            kinect_capture_frame = multiprocessing.Process(target=self.kinect_capture_frame)
-            rs_capture_frame = multiprocessing.Process(target=self.rs_capture_frame)
-            webcam_capture_frame = multiprocessing.Process(target=self.capture_webcam)
-            
-            cart_sensors.start()
-            kinect_capture_frame.start()
-            rs_capture_frame.start()
-            webcam_capture_frame.start()
-            
-            cart_sensors.join()
-            kinect_capture_frame.join()
-            rs_capture_frame.join()
-            webcam_capture_frame.join()
-    
-
-            if self.kill_signal:
-                # kinect_capture_frame.terminate()
-                # rs_capture_frame.terminate()
-
-                # self._imu_p.kill()
-                # cart_sensors.terminate()
-                print("killing the process")
 
 if __name__ == "__main__":
     # main program
