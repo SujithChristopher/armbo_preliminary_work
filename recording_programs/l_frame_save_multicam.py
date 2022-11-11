@@ -1,6 +1,6 @@
 """ 
 
-this program records video from two cameras simultaneously and saves the
+this program records L frame from different cameras simultaneously and saves the
 files locally, in message pack format
 
 this is designed to run in Kinect and Realsense
