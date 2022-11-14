@@ -32,7 +32,7 @@ class RecordData:
         self.start_recording = False
         self._pth = _pth
         self.kill_signal = False
-        self.fps_val = 15
+        self.fps_val = 30
         self.display = True
     
     def capture_webcam(self):
@@ -42,7 +42,7 @@ class RecordData:
         cap = cv2.VideoCapture(self.cam_device)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        cap.set(cv2.CAP_PROP_FPS, 15)
+        cap.set(cv2.CAP_PROP_FPS, self.fps_val)
 
         if self.record_camera:
             _save_pth = os.path.join(self._pth, "webcam_color.msgpack")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record_camera or record_sensors:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","multi_cam_nov_11", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","multi_cam_nov_14", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
