@@ -32,7 +32,7 @@ from threading import Thread
 import keyboard
 
 class MultiSensorRecorder:
-    def __init__(self, _pth, display= False, record = False):
+    def __init__(self, _pth, display= False, record = False, calib_pth = None):
 
         """kinect parameters for recording"""
         self.yRes = 736
@@ -58,6 +58,12 @@ class MultiSensorRecorder:
 
         self.webcam_id = self.device_list.index("e2eSoft iVCam")
 
+        # calibration path
+        self.calib_pth = calib_pth
+        self.k_ortho = None
+        self.rs_ortho = None
+        self.w_ortho = None
+
     
     def kill_thread(self):
         """kill the thread"""
@@ -69,6 +75,12 @@ class MultiSensorRecorder:
         """kinect capture frame"""
         # kinect capture frame
         self.kinect = PyKinectRuntime.PyKinectRuntime(PyKinectV2.FrameSourceTypes_Color)
+
+        self.kinect_calib_pth = os.path.join(self.calib_pth, "kinect_calibration.msgpack")
+        with open(self.kinect_calib_pth, "rb") as f:
+            kinect_calib_file = mp.load(f, object_hook=mpn.decode)
+            k_cam_mat = kinect_calib_file[0]
+            k_dist_coeff = kinect_calib_file[1]
 
 
         if self.record:
@@ -82,6 +94,17 @@ class MultiSensorRecorder:
                 frame = frame.reshape((1080, 1920, 4))
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2GRAY)
                 frame = frame[self.yPos * 2:self.yPos * 2 + self.yRes, self.xPos * 2:self.xPos * 2 + self.xRes].copy()
+                # flip frame
+                frame = cv2.flip(frame, 1)
+
+                try:
+                    # minimal orthogonalization
+                    corners, ids, rejectedImgPoints = detect_lframe_from_img(frame)
+                    self.k_ortho = calculate_rotmat_from_3markers(corners, ids, camera_matrix=k_cam_mat, dist_coeffs=k_dist_coeff)
+                    # print(self.k_ortho)
+                except:
+                    pass
+
 
                 if self.record and self.start_recording:
                     _packed_file = mp.packb(frame, default=mpn.encode)
@@ -123,6 +146,12 @@ class MultiSensorRecorder:
         config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8 , 15)
         pipeline.start(config)
 
+        self.rs_calib_pth = os.path.join(self.calib_pth, "realsense_calibration.msgpack")
+        with open(self.rs_calib_pth, "rb") as f:
+            rs_calib_file = mp.load(f, object_hook=mpn.decode)
+            rs_cam_mat = rs_calib_file[0]
+            rs_dist_coeff = rs_calib_file[1]
+
         if self.record:
             _save_pth = os.path.join(self._pth, "realsense_color.msgpack")
             _save_file = open(_save_pth, "wb")
@@ -133,6 +162,13 @@ class MultiSensorRecorder:
             color_image = np.asanyarray(color_frame.get_data())
             color_image = color_image[self.yPos:self.yPos + self.yResRs, self.xPos:self.xPos + self.xResRs].copy()
             gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+
+            try:
+                # minimal orthogonalization
+                corners, ids, rejectedImgPoints = detect_lframe_from_img(gray_image)
+                calculate_rotmat_from_3markers(corners, ids, camera_matrix=rs_cam_mat, dist_coeffs=rs_dist_coeff)
+            except:
+                pass
 
             if self.record and self.start_recording:
                 _packed_file = mp.packb(gray_image, default=mpn.encode)
@@ -183,6 +219,13 @@ class MultiSensorRecorder:
             ret, frame = cap.read()
             gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray_image = gray_image[self.yPos:self.yPos + self.yResRs, self.xPos:self.xPos + self.xResRs].copy()
+            
+            try:
+                # minimal orthogonalization
+                corners, ids, rejectedImgPoints = detect_lframe_from_img(frame)
+                self.rs_ortho = calculate_rotmat_from_3markers(corners, ids, camera_matrix=None, dist_coeffs=None)
+            except:
+                pass
 
             if self.record and self.start_recording:
                 _packed_file = mp.packb(gray_image, default=mpn.encode)
@@ -207,6 +250,30 @@ class MultiSensorRecorder:
             if keyboard.is_pressed('s'):  # if key 's' is pressed
                 print('You Pressed A Key!, started recording from webcam')
                 self.start_recording = True
+
+    def print_display(self):
+
+        while 1:
+            try:
+                # _print_str = f"""\r Kinect {round(self.k_ortho[0]*100, 2)}, {round(self.k_ortho[1]*100, 2)}, {round(self.k_ortho[2]*100, 2)} \t rs {round(self.rs_ortho[0]*100, 2)}, {round(self.rs_ortho[1]*100, 2)}, {round(self.rs_ortho[2]*100, 2)} \t wb {round(self.k_ortho[0]*100, 2)}, {round(self.k_ortho[1]*100, 2)}, {round(self.k_ortho[2]*100, 2)}"""
+                print(self.k_ortho, end="\r")
+            # _print_str1 = f"""\r Kinect {round(self.k_ortho[0]*100, 2)}, {round(self.k_ortho[1]*100, 2)}, {round(self.k_ortho[2]*100, 2)}"""
+            # _print_str2 = f"""\r Kinect {round(self.k_ortho[0]*100, 2)}, {round(self.k_ortho[1]*100, 2)}, {round(self.k_ortho[2]*100, 2)}"""
+            # print(_print_str, end=" ", flush=True)
+            # os.system('cls')
+            # sys.stdout.write(_print_str)as
+            # sys.stdout.write(_print_str1)q
+            # sys.stdout.write(_print_str2)
+            # clear screen
+            except:
+                pass
+            
+            
+
+            if keyboard.is_pressed('q'):
+                self.kill_thread()
+                break
+        
                 
     def record_for_calibration(self):
         """
@@ -224,14 +291,17 @@ class MultiSensorRecorder:
             kinect_capture_frame = multiprocessing.Process(target=self.kinect_capture_frame)
             rs_capture_frame = multiprocessing.Process(target=self.rs_capture_frame)
             webcam_capture_frame = multiprocessing.Process(target=self.capture_webcam)
+            print_function = multiprocessing.Process(target=self.print_display)
 
             kinect_capture_frame.start()
             rs_capture_frame.start()
             webcam_capture_frame.start()
+            print_function.start()
 
             kinect_capture_frame.join()
             rs_capture_frame.join()
             webcam_capture_frame.join()
+            print_function.join()
 
 
             if self.kill_signal:
@@ -248,13 +318,16 @@ if __name__ == "__main__":
     display = True
     _pth = None # this is default do not change, path gets updated by your input
 
+    # give calibration path
+    calib_pth = r"C:\Users\CMC\Documents\openposelibs\pose\armbo\recording_programs\test_data\multi_cam_nov_11\calibration1"
+
     if record:
         _pth = os.path.join(os.path.dirname(__file__), "test_data", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
 
-    recorder = MultiSensorRecorder(_pth, display=display, record=record)
+    recorder = MultiSensorRecorder(_pth, display=display, record=record, calib_pth=calib_pth)
     recorder.run(cart_sensors=False)
 
     print("done recording")

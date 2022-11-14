@@ -29,7 +29,7 @@ def calculate_rotmat_from_3markers(corners, ids, camera_matrix, dist_coeffs, mar
     z_inx = ids.index(6)
     org_inx = ids.index(9)
     x_inx = ids.index(10)
-    print(z_inx, org_inx, x_inx)
+    # print(z_inx, org_inx, x_inx, flush = True)
 
     zvec = translation_vector[z_inx][0]
     zvec = np.reshape(zvec, (3, 1))
@@ -38,16 +38,13 @@ def calculate_rotmat_from_3markers(corners, ids, camera_matrix, dist_coeffs, mar
     xvec = translation_vector[x_inx][0]
     xvec = np.reshape(xvec, (3, 1))
 
-
-    translation_vector
-    zvec
     rotMat = calculate_rotmat(xvec, zvec, org)
-    rotMat
-
     t_xvec = zvec - org 
+    t_zvec = xvec - org
+    _z = rotMat.T@t_zvec
+    _x = rotMat.T@t_xvec
 
-    translation_correction = np.array([0.045, -0.05, 0.045]).reshape(3, 1) # adding the corrections in the new L frame
+    # print(_x.T[0], _z.T[0], end="\r")
 
-    rotMat.T@t_xvec + translation_correction
-    
-    print(rotMat.T@t_xvec)
+
+    return [_x.T[0], _z.T[0]]

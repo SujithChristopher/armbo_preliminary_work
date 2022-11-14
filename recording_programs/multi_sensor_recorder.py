@@ -40,7 +40,7 @@ class MultiSensorRecorder:
         self.xPos = 274 # fixed parameters
         self.yPos = 112
 
-        self.fps_val = 15
+        self.fps_val = 60
         self._pth = _pth
 
         self.kill_signal = False
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data", "multi_cam_nov_11", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
