@@ -1,5 +1,5 @@
 """
-this program records data from webcam and teensy controller
+this program records data from webcam and teensy controller 
 """
 import cv2
 import os
@@ -32,7 +32,7 @@ class RecordData:
         self.start_recording = False
         self._pth = _pth
         self.kill_signal = False
-        self.fps_val = 60
+        self.fps_val = 15
         self.display = True
     
     def capture_webcam(self):
