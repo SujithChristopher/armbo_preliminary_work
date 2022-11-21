@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import msgpack
 import msgpack_numpy as mpn
+from scipy.interpolate import interp1d
 
 def read_df_csv(filename, offset=2):
     """
@@ -120,3 +121,86 @@ def add_time_from_file(df, _pth):
     df["time"] = _time
     df["time"] = pd.to_datetime(df["time"])
     return df
+
+def interpolate_target_df(target_df, reference_df, col_names = None):
+    # based on mocap time using interp1d function
+    # for x, y, z coordinates and yaw, pitch, roll
+    """
+    target_df: dataframe to be interpolated
+    reference_df: dataframe to be used as reference
+    col_names: list of column names to be interpolated
+
+    both dataframes should have a column named "time"
+    """
+
+    target_df = target_df.reset_index(drop=True)
+    reference_df = reference_df.reset_index(drop=True)
+
+    # column names 
+    if col_names is None:
+        col_names = ["x", "y", "z", "yaw", "pitch", "roll"]
+
+    df = pd.DataFrame(columns=col_names)
+    df["time"] = reference_df.time
+
+    # change reference time to float
+    reference_df["time"] = reference_df["time"].dt.hour * 3600 + reference_df["time"].dt.minute * 60 + reference_df["time"].dt.second + reference_df["time"].dt.microsecond / 1000000
+    # change target time to float
+    target_df["time"] = target_df["time"].dt.hour * 3600 + target_df["time"].dt.minute * 60 + target_df["time"].dt.second + target_df["time"].dt.microsecond / 1000000
+
+    new_cols = []
+    for i in col_names:
+        f = interp1d(target_df.time, target_df[i], fill_value="extrapolate")
+
+        _new_val = f(reference_df.time)
+
+        new_cols.append(_new_val)
+
+    for idx, i in enumerate(col_names):
+        df[i] = new_cols[idx]
+    
+    return df
+
+def trunkate_dfs(df_1, df_2, display_print = False):
+    # which starts earlier
+    """
+    df_1: dataframe 1
+    df_2: dataframe 2
+
+    both dataframes should have a column named "time"
+
+    this code will truncate the dataframes to the same "time" length
+    """
+    if df_1["time"].iloc[0] < df_2["time"].iloc[0]:
+        _start_inx = df_1.time.searchsorted(df_2.time[0])
+
+        df_1 = df_1.loc[_start_inx:]
+        df_1 = df_1.reset_index(drop=True)
+        if display_print:
+            print(_start_inx)
+            print("df_1 starts earlier")
+    else:
+        _start_inx = df_2.time.searchsorted(df_1.time[0])
+        df_2 = df_2.loc[_start_inx:]
+        df_2 = df_2.reset_index(drop=True)
+        if display_print:
+            print(_start_inx)
+            print("df_2 starts earlier")
+
+    # which ends later
+    if df_1["time"].iloc[-1] > df_2["time"].iloc[-1]:
+        _end_inx = df_1.time.searchsorted(df_2.time.iloc[-1])
+        df_1 = df_1.loc[:_end_inx]
+        df_1 = df_1.reset_index(drop=True)
+        if display_print:
+            print(_end_inx)
+            print("df_1 ends later")
+    else:
+        _end_inx = df_2.time.searchsorted(df_1.time.iloc[-1])
+        df_2 = df_2.loc[:_end_inx]
+        df_2 = df_2.reset_index(drop=True)
+        if display_print:
+            print(_end_inx)
+            print("df_2 ends later")
+
+    return df_1, df_2
