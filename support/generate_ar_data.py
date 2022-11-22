@@ -92,7 +92,7 @@ def estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs,is_
             distCoeffs = distCoeffs)
 
     rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.05, cameraMatrix, distCoeffs)
-    return rotation_vectors, translation_vectors, _objPoints
+    return rotation_vectors, translation_vectors, _objPoints, ids
 
 
 def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, process_raw = False, is_color = True, single_file=False, flip_frame = False, _pth_to_save=""):
@@ -123,8 +123,10 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
             unpacker = mp.Unpacker(cfile, object_hook=mpn.decode)
             for frame in unpacker:
 
-                rotation_vectors, translation_vectors, _ = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, is_color = _is_color, ar_params = ar_params, ar_dict = ar_dict, board = board)
-                data = [5]
+                rotation_vectors, translation_vectors, _, ids = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, is_color = _is_color, ar_params = ar_params, ar_dict = ar_dict, board = board)
+                if ids is not None:
+                    data = ids[0]
+                    print(data)
                 if rotation_vectors is not None and rotation_vectors is not []:
                     data.extend(translation_vectors[0][0])
                     data.extend(rotation_vectors[0][0])
@@ -142,7 +144,7 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
         while cap.isOpened():
             ret, frame = cap.read()
             if ret:
-                rotation_vectors, translation_vectors, _ = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs)
+                rotation_vectors, translation_vectors, _ , ids = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs)
 
                 data = []
                 if rotation_vectors is not None:
@@ -166,8 +168,10 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
         for frame in unpacker:
             if flip_frame:
                 frame = cv2.flip(frame, 1)
-            rotation_vectors, translation_vectors, _ = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, ar_params = ar_params, ar_dict = ar_dict, board = board)
-            data = [5]
+            rotation_vectors, translation_vectors, _, ids = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, ar_params = ar_params, ar_dict = ar_dict, board = board)
+            data = []
+            if ids is not None:
+                data = [ids[0][0]]
             if rotation_vectors is not None and rotation_vectors is not []:
                 data.extend(translation_vectors[0][0])
                 data.extend(rotation_vectors[0][0])
