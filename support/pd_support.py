@@ -138,7 +138,7 @@ def interpolate_target_df(target_df, reference_df, col_names = None):
 
     # column names 
     if col_names is None:
-        col_names = ["x", "y", "z", "yaw", "pitch", "roll"]
+        col_names = ["frame_id","x", "y", "z", "yaw", "pitch", "roll"]
 
     df = pd.DataFrame(columns=col_names)
     df["time"] = reference_df.time
@@ -158,6 +158,7 @@ def interpolate_target_df(target_df, reference_df, col_names = None):
 
     for idx, i in enumerate(col_names):
         df[i] = new_cols[idx]
+    
     
     return df
 

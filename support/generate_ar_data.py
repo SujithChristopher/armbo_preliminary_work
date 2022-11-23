@@ -95,7 +95,7 @@ def estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs,is_
     return rotation_vectors, translation_vectors, _objPoints, ids
 
 
-def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, process_raw = False, is_color = True, single_file=False, flip_frame = False, _pth_to_save=""):
+def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, process_raw = False, is_color = True, single_file=False, flip_frame = False, _pth_to_save="", print_display = False):
 
     """
     _pth: path to video (msgpack) files containing calibration data
@@ -125,8 +125,10 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
 
                 rotation_vectors, translation_vectors, _, ids = estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, is_color = _is_color, ar_params = ar_params, ar_dict = ar_dict, board = board)
                 if ids is not None:
-                    data = ids[0]
-                    print(data)
+                    data = [ids[0][0]]
+                else:
+                    data = [np.nan]
+
                 if rotation_vectors is not None and rotation_vectors is not []:
                     data.extend(translation_vectors[0][0])
                     data.extend(rotation_vectors[0][0])
@@ -172,6 +174,9 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
             data = []
             if ids is not None:
                 data = [ids[0][0]]
+            else:
+                data = [np.nan]
+
             if rotation_vectors is not None and rotation_vectors is not []:
                 data.extend(translation_vectors[0][0])
                 data.extend(rotation_vectors[0][0])
@@ -181,8 +186,8 @@ def get_ar_pose_data(_pth, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs, pro
                 df.loc[len(df)] = data
             
         cfile.close()
-
-    print("returning dataframe")
+    if print_display:
+        print("returning dataframe")
     return df
 
 def detect_ar_markers(frame, ar_params = None, ar_dict = None, board = None):
