@@ -129,7 +129,7 @@ if __name__ == "__main__":
     _pth = None # this is default do not change, path gets updated by your input
 
     if record_camera or record_sensors:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data","sensor_dec_01", _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data","sensor_dec_02", _name)
         print(_pth)
         if not os.path.exists(_pth):
             os.makedirs(_pth)
