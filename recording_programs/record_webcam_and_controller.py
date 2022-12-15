@@ -32,7 +32,7 @@ class RecordData:
         self.start_recording = False
         self._pth = _pth
         self.kill_signal = False
-        self.fps_val = 15
+        self.fps_val = 30
         self.display = True
     
     def capture_webcam(self):
