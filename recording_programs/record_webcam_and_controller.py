@@ -15,6 +15,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from mecanum_wheel.encoder_stream_test import SerialPort
 from support.pymf import get_MF_devices as get_camera_list
 import getopt
+import argparse
+import logging
+import time
 
 
 class RecordData:
@@ -40,7 +43,7 @@ class RecordData:
         """capture webcam"""
 
         #list available webcam
-        cap = cv2.VideoCapture(self.cam_device)
+        cap = cv2.VideoCapture(self.cam_device, cv2.CAP_DSHOW)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         cap.set(cv2.CAP_PROP_FPS, self.fps_val)
@@ -77,6 +80,7 @@ class RecordData:
                     if self.record_camera:
                         _save_file.close()
                         _timestamp_file.close()
+                    # sys.exit()
                     break
                 
                 if keyboard.is_pressed('s'):  # if key 's' is pressed
@@ -121,19 +125,23 @@ class RecordData:
 if __name__ == "__main__":
 
     """get parameter from external program"""
-    _name = None
-    opts, args = getopt.getopt(sys.argv[1:], "n:f", ["name = ", "folder ="])
-    
-    for opt, arg in opts:
-        if opt in ("-n", "--name"):
-            _name = arg
-        elif opt in ("-f", "--folder"):
-            _pth = arg
 
-    print("args: ", args, "opts: ", opts, "name: ", _name, "pth: ", _pth)
+    parser = argparse.ArgumentParser(
+                    prog = 'Single camera recorder',
+                    description = 'This basically records data from the camera and the sensors',
+                    epilog = 'Text at the bottom of help')
+    parser.add_argument('-f', '--folder', help='folder name', required=False)
+    parser.add_argument('-n', '--name', help='name of the file', required=False)
+    parser.add_argument('-c', '--camera', help='record camera', required=False)
+    parser.add_argument('-s', '--sensors', help='record sensors', required=False)
 
-    if args == []:
-        print("No arguments passed")
+    args = parser.parse_args()
+
+    # if your not passing any arguments then the default values will be used
+    # and you may have to enter the folder name and the name of the recording
+    if not any(vars(args).values()):
+        print("No arguments passed, please enter manually")
+
         """Enter the respective parameters"""
         record_camera = True
         record_sensors = False
@@ -142,12 +150,33 @@ if __name__ == "__main__":
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
+        _folder_name = "single_cam_jan_4_2022" # this is the parent folder name where the data will be saved
 
-    # if record_camera or record_sensors:
-    #     _pth = os.path.join(os.path.dirname(__file__), "test_data","single_cam_dec_14", _name)
-    #     print(_pth)
-    #     if not os.path.exists(_pth):
-    #         os.makedirs(_pth)
+    else:
+        print("Arguments passed")
+        _folder_name = args.folder
+        _name = args.name
+        record_camera = args.camera
+        record_sensors = args.sensors
 
-    # record_data = RecordData(_pth=_pth, record_camera=record_camera)
-    # record_data.run(cart_sensors=record_sensors)
+        if record_camera == "True":
+            record_camera = True
+        else:
+            record_camera = False
+        if record_sensors == "True":
+            record_sensors = True
+        else:
+            record_sensors = False
+
+    if record_camera or record_sensors:
+        _pth = os.path.join(os.path.dirname(__file__), "test_data",_folder_name, _name)
+
+        if '\n' in _pth:
+            _pth = _pth.replace('\n', '')
+
+        if not os.path.exists(_pth):
+            os.makedirs(_pth)
+    time.sleep(10)
+
+    record_data = RecordData(_pth=_pth, record_camera=record_camera)
+    record_data.run(cart_sensors=record_sensors)
