@@ -19,9 +19,8 @@ import argparse
 import logging
 import time
 
-
 class RecordData:
-    def __init__(self, _pth = None, record_camera = True, fps_value = 30):
+    def __init__(self, _pth = None, record_camera = True, fps_value = 15):
 
         self.device_list = get_camera_list()
         self.cam_device = self.device_list.index("e2eSoft iVCam")
@@ -53,6 +52,9 @@ class RecordData:
             _save_file = open(_save_pth, "wb")
             _timestamp_file = open(os.path.join(self._pth, "webcam_timestamp.msgpack"), "wb")
 
+        # prev_frame_time = 0   # for fps display
+        # new_frame_time = 0
+
         while True:
             ret, frame = cap.read()
             if ret:
@@ -69,6 +71,16 @@ class RecordData:
                 fpstimer.FPSTimer(self.fps_val)
 
                 if self.display:
+                    # fps display
+                    # font = cv2.FONT_HERSHEY_SIMPLEX
+                    # new_frame_time = time.time()
+                    # fps = 1/(new_frame_time-prev_frame_time)
+                    # prev_frame_time = new_frame_time
+                    # fps = int(fps)
+                    # fps = str(fps)
+                    # cv2.putText(gray_image, fps, (7, 70), font, 3, (100, 255, 0), 3, cv2.LINE_AA)
+                    # fps display
+
                     cv2.imshow('webcam', gray_image)
                     cv2.waitKey(1)
 
@@ -150,7 +162,7 @@ if __name__ == "__main__":
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
-        _folder_name = "single_cam_jan_4_2022" # this is the parent folder name where the data will be saved
+        _folder_name = "single_cam_jan_5_2023_3cm" # this is the parent folder name where the data will be saved
 
     else:
         print("Arguments passed")
