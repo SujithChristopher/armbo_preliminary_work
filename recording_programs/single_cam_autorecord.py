@@ -10,7 +10,7 @@ import keyboard
 
 python_program = os.path.join(os.getcwd(), "recording_programs", "record_webcam_and_controller.py")
 
-_parent_folder = "test_recordings" # this is the parent folder name where the data will be saved
+_parent_folder = "single_cam_jan_5_2023_3cm" # this is the parent folder name where the data will be saved
 _base_pth = os.getcwd()
 _base_pth = os.path.join(_base_pth, "recording_programs", "test_data")
 
@@ -80,13 +80,7 @@ def main_process(file_name):
 def main():
     file_names = get_file_names()
     for file_name in file_names:
-        counter = 0
         main_process(file_name)
-
-        if keyboard.is_pressed("r"):
-            file_name = file_name + "_d" + str(counter)
-            main_process(file_name)
-        # break
         
 if __name__ == '__main__':
     main()
