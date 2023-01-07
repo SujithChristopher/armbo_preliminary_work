@@ -7,6 +7,8 @@ import getopt
 import sys
 import subprocess
 import keyboard
+from art import tprint
+
 
 python_program = os.path.join(os.getcwd(), "recording_programs", "record_webcam_and_controller.py")
 
@@ -42,7 +44,9 @@ def stop_mocap_recording():
     pyautogui.click(879, 1009)
 
 def main_process(file_name):
-    print(_parent_folder, file_name)
+    # print(_parent_folder, file_name)
+    tprint(file_name[8:])
+
     process = subprocess.Popen(["python", python_program, "-f", _parent_folder, "-n", file_name, "-c", "True", "-s", "False"])
     
     sleep(1)
@@ -71,9 +75,7 @@ def main_process(file_name):
     # if third_keypress == "q":
     #     # stop the recording for mocap
     #     stop_mocap_recording()
-
-    print("recording is done for", file_name)
-
+    
     process.wait()
 
 
