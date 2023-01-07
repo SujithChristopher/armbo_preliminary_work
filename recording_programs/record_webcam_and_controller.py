@@ -20,7 +20,7 @@ import logging
 import time
 
 class RecordData:
-    def __init__(self, _pth = None, record_camera = True, fps_value = 15):
+    def __init__(self, _pth = None, record_camera = True, fps_value = 60):
 
         self.device_list = get_camera_list()
         self.cam_device = self.device_list.index("e2eSoft iVCam")
