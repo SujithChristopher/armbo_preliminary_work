@@ -5,7 +5,6 @@ import msgpack as mp
 import msgpack_numpy as mpn
 import glob
 import os
-import sys
 from cv2 import aruco
 
 
@@ -91,7 +90,7 @@ def estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs,is_
             cameraMatrix = cameraMatrix,
             distCoeffs = distCoeffs)
 
-    rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.05, cameraMatrix, distCoeffs)
+    rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.03, cameraMatrix, distCoeffs)
     return rotation_vectors, translation_vectors, _objPoints, ids
 
 
