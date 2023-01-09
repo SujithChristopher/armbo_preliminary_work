@@ -31,7 +31,7 @@ distCoeffs = _calib[0][1]
 _calib_file.close()
 
 
-def camera_parameters(ar_parameters = None, ar_dictionary = None, markerLength = 0.05, markerSeparation = 0.01):
+def camera_parameters(ar_parameters = None, ar_dictionary = None, markerLength = 0.04, markerSeparation = 0.01):
 
     """
     ar_parameters: aruco camera parameters using 'aruco.DetectorParameters_create()'
@@ -91,7 +91,7 @@ def estimate_ar_pose(frame, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs,is_
             cameraMatrix = cameraMatrix,
             distCoeffs = distCoeffs)
 
-    rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.05, cameraMatrix, distCoeffs)
+    rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.04, cameraMatrix, distCoeffs)
     return rotation_vectors, translation_vectors, _objPoints, ids
 
 
