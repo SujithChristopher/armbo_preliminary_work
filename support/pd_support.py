@@ -205,3 +205,9 @@ def trunkate_dfs(df_1, df_2, display_print = False):
             print("df_2 ends later")
 
     return df_1, df_2
+
+def read_rigid_body_csv(_pth):
+    """
+    _pth: path to the rigid body file
+    """
+    pass
