@@ -7,6 +7,7 @@ import numpy as np
 import msgpack
 import msgpack_numpy as mpn
 from scipy.interpolate import interp1d
+from more_itertools import locate
 
 def read_df_csv(filename, offset=2):
     """
@@ -210,4 +211,97 @@ def read_rigid_body_csv(_pth):
     """
     _pth: path to the rigid body file
     """
-    pass
+    df = pd.read_csv(_pth, skiprows=2, header=None)
+
+    # get the start time of the capture
+    raw_df = pd.read_csv(_pth)
+    cols_list = raw_df.columns     # first row which contains capture start time
+    inx = [i for i, x in enumerate(cols_list) if x == "Capture Start Time"]
+    st_time = cols_list[inx[0] + 1]
+    st_time = datetime.strptime(st_time, "%Y-%m-%d %I.%M.%S.%f %p")  # returns datetime object
+
+    _marker_type = []
+    for idx in df.columns:
+        _marker_type.append(df[idx][0])
+
+    def find_indices(list_to_check, item_to_find):
+        indices = locate(list_to_check, lambda x: x == item_to_find)
+        return list(indices)
+
+    # find the indices of the marker types
+    _rb_idx = find_indices(_marker_type, "Rigid Body")
+    _rb_marker_idx = find_indices(_marker_type, "Rigid Body Marker")
+    _marker_idx = find_indices(_marker_type, "Marker")
+
+    _rb_idx.sort()
+    _rb_marker_idx.sort()
+    _marker_idx.sort()
+
+    _rb_df = df.copy(deep=True)
+    _rb_df = df[1:]
+    _analysis_type = list(_rb_df.iloc[2].values)
+
+    _rotation_ids = find_indices(_analysis_type, "Rotation")
+    _rotation_ids.sort()
+
+    _rb_pos_idx = _rb_idx.copy()
+
+    # remove the rotation indices from the position indices
+    [_rb_pos_idx.remove(i) for i in _rotation_ids]
+
+    # create column names for angle
+    col_names = []
+
+    # first two columns
+    col_names.append("frame")
+    col_names.append("time_seconds")
+
+    for i in _rotation_ids:
+        _col = _rb_df[i].iloc[3].lower()
+        col_names.append("rb_ang_" + _col)
+
+    # create column names for position
+    for i in _rb_pos_idx:
+        if isinstance(_rb_df[i].iloc[3], str):
+            _col = _rb_df[i].iloc[3].lower()
+            col_names.append("rb_pos_" + _col)
+        else:
+            col_names.append("rb_pos_err")
+
+
+    # rigid body individual marker section
+
+    for i in _rb_marker_idx:
+        if isinstance(_rb_df[i].iloc[0], str):
+            _col_head = _rb_df[i].iloc[0].lower()
+            _col_head = _col_head.split(":")[1].strip()
+            _col_head = _col_head.replace("marker", "")
+            _m_idx = int(_col_head)
+            
+            if isinstance(_rb_df[i].iloc[3], str):
+                _col = _rb_df[i].iloc[3].lower()
+                col_names.append("rb_marker_m" + str(_col_head) + "_" + _col)
+            else:
+                col_names.append("rb_marker_m" + str(_col_head) + "_mq") # marker quality
+
+
+    # individual marker section 
+
+    for i in _marker_idx:
+        if isinstance(_rb_df[i].iloc[0], str):
+            _col_head = _rb_df[i].iloc[0].lower()
+            _col_head = _col_head.split(":")[1].strip()
+            _col_head = _col_head.replace("marker", "")
+            _m_idx = int(_col_head)
+            
+            if isinstance(_rb_df[i].iloc[3], str):
+                _col = _rb_df[i].iloc[3].lower()
+                col_names.append("m" + str(_col_head) + "_" + _col)
+
+    _rb_df = _rb_df[4:]
+    _rb_df.columns = col_names
+
+    #reset index
+    _rb_df = _rb_df.reset_index(drop=True)
+
+    return _rb_df, st_time
