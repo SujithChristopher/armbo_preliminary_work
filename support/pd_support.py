@@ -254,7 +254,7 @@ def read_rigid_body_csv(_pth):
 
     # first two columns
     col_names.append("frame")
-    col_names.append("time_seconds")
+    col_names.append("seconds")
 
     for i in _rotation_ids:
         _col = _rb_df[i].iloc[3].lower()
@@ -303,5 +303,6 @@ def read_rigid_body_csv(_pth):
 
     #reset index
     _rb_df = _rb_df.reset_index(drop=True)
+    _rb_df = _rb_df.astype(float)
 
     return _rb_df, st_time
