@@ -12,7 +12,7 @@ from art import tprint
 
 python_program = os.path.join(os.getcwd(), "recording_programs", "record_webcam_and_controller.py")
 
-_parent_folder = "single_cam_jan_5_2023_3cm" # this is the parent folder name where the data will be saved
+_parent_folder = "cam_and_sensor_feb_1_2023_5cm" # this is the parent folder name where the data will be saved
 _base_pth = os.getcwd()
 _base_pth = os.path.join(_base_pth, "recording_programs", "test_data")
 
@@ -47,7 +47,7 @@ def main_process(file_name):
     # print(_parent_folder, file_name)
     tprint(file_name[8:])
 
-    process = subprocess.Popen(["python", python_program, "-f", _parent_folder, "-n", file_name, "-c", "True", "-s", "False"])
+    process = subprocess.Popen(["python", python_program, "-f", _parent_folder, "-n", file_name, "-c", "True", "-s", "True"])
     
     sleep(1)
 
