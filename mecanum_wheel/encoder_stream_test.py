@@ -77,19 +77,15 @@ class SerialPort(object):
 
     def run_program(self):
         while True:
-
-            # print(self.ser_port.read())
-
             if self.serial_read():
-                # print(len(self.payload))
-
                 val = struct.unpack("4l", self.payload[:16])    # encoder values
                 _rtc = struct.unpack("Q", self.payload[16:24])    # rtc values time delta
                 mils = struct.unpack("L", self.payload[24:28])
                 _sync = struct.unpack("c", self.payload[28:29])[0].decode("utf-8")
                 _imu_data = struct.unpack("6f", self.payload[29:])
 
-                print(_sync)
+                sys.stdout.write("\r" + _sync)
+                sys.stdout.flush()
 
                 _rtcval = datetime.fromtimestamp(_rtc[0]).strftime("%Y-%m-%d %I.%M.%S.%f %p")
 
@@ -119,7 +115,7 @@ if __name__ == '__main__':
     _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\ghn"
 
     # myport = SerialPort("COM15", 115200, csv_path=_filepath, csv_enable=True)
-    myport = SerialPort("COM16", 115200, csv_path=_filepath, csv_enable=False)
+    myport = SerialPort("COM4", 115200, csv_path=_filepath, csv_enable=False)
     # myport = SerialPort("COM4", 115200, csv_path="random", csv_enable=False)
     # myport = SerialPort("COM4", 115200)
     myport.run_program()

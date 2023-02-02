@@ -20,7 +20,7 @@ import logging
 import time
 
 class RecordData:
-    def __init__(self, _pth = None, record_camera = True, fps_value = 60):
+    def __init__(self, _pth = None, record_camera = True, fps_value = 30):
 
         self.device_list = get_camera_list()
         self.cam_device = self.device_list.index("e2eSoft iVCam")
@@ -115,13 +115,13 @@ class RecordData:
             
         if cart_sensors and not self.record_camera:
 
-            myport = SerialPort("COM16", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
+            myport = SerialPort("COM4", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
             cart_sensors = Thread(target=myport.run_program)
             cart_sensors.start()
 
         if cart_sensors and self.record_camera:
 
-            myport = SerialPort("COM16", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
+            myport = SerialPort("COM4", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True)
             cart_sensors = Thread(target=myport.run_program)
             webcam_capture_frame = multiprocessing.Process(target=self.capture_webcam)
             
@@ -156,13 +156,13 @@ if __name__ == "__main__":
 
         """Enter the respective parameters"""
         record_camera = True
-        record_sensors = False
+        record_sensors = True
 
         if record_camera or record_sensors:
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
-        _folder_name = "single_cam_jan_5_2023_3cm" # this is the parent folder name where the data will be saved
+        _folder_name = "cam_and_sensor_feb_1_2023_5cm" # this is the parent folder name where the data will be saved
 
     else:
         print("Arguments passed")
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
         if not os.path.exists(_pth):
             os.makedirs(_pth)
-    time.sleep(10)
+    time.sleep(1)
 
     record_data = RecordData(_pth=_pth, record_camera=record_camera)
     record_data.run(cart_sensors=record_sensors)
