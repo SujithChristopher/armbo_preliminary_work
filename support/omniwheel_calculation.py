@@ -52,6 +52,7 @@ def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
     """
 
 
+    # mat = np.array([[-y, 1, 0], [-x, 0, -1], [x, 0, -1]])
     mat = np.array([[-y, 1, 0], [-x, 0, -1], [x, 0, -1]])
     pmat = np.linalg.pinv(mat)
     _vx = []
