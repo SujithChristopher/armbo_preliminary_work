@@ -71,7 +71,7 @@ class RecordData:
                 fpstimer.FPSTimer(self.fps_val)
 
                 if self.display:
-                    # fps display
+                    # # fps display
                     # font = cv2.FONT_HERSHEY_SIMPLEX
                     # new_frame_time = time.time()
                     # fps = 1/(new_frame_time-prev_frame_time)
