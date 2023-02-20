@@ -306,3 +306,18 @@ def read_rigid_body_csv(_pth):
     _rb_df = _rb_df.astype(float)
 
     return _rb_df, st_time
+
+
+def get_marker_name(val):
+    # int value to marker name
+    """
+    this function is for rigid body markers
+    it generates the marker names for the rigid body markers
+    using the given integer value    
+    """
+    # create using dictionary
+    _val = {"x":"m" + str(val) + "_x",
+            "y":"m" + str(val) + "_y",
+            "z":"m" + str(val) + "_z",}
+
+    return _val
