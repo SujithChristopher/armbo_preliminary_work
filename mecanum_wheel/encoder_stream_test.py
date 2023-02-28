@@ -18,7 +18,7 @@ from armbo import rs_time
 class SerialPort(object):
     # Contains functions that enable communication between the docking station and the IMU watches
 
-    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False):
+    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False, dof=6):
         # Initialise serial payload
         self.count = 0
         self.plSz = 0
@@ -26,15 +26,20 @@ class SerialPort(object):
 
         self.serialport = serialport
         self.ser_port = serial.Serial(serialport, serialrate)
+        self.dof = dof
 
         self.csv_enabled = csv_enable
         if csv_enable:
             # self.csv_file = open(csv_path + "//imu01.csv", "w")
             self.csv_file = open(csv_path+ "//imu01.csv", "w")
             self.csv = csv.writer(self.csv_file)
-            self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz"])
+            if self.dof == 6:
+                self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz"])
+            elif self.dof == 9:
+                self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz", "mx", "my", "mz"])
         self.triggered = True
         self.connected = False
+        
 
         stdout.write("Initializing imu program\n")
 
@@ -82,7 +87,9 @@ class SerialPort(object):
                 _rtc = struct.unpack("Q", self.payload[16:24])    # rtc values time delta
                 mils = struct.unpack("L", self.payload[24:28])
                 _sync = struct.unpack("c", self.payload[28:29])[0].decode("utf-8")
-                _imu_data = struct.unpack("6f", self.payload[29:])
+                _imu_data = struct.unpack("6f", self.payload[29:53])
+                if len(self.payload) > 53:
+                    _magnetometer = struct.unpack("3f", self.payload[53:65])
 
                 sys.stdout.write("\r" + _sync)
                 sys.stdout.flush()
@@ -98,7 +105,10 @@ class SerialPort(object):
                     nw = datetime.now()     # datetime
 
                 if self.csv_enabled:
-                    self.csv.writerow([str(nw), rs, val[0], val[1], val[2], val[3], _rtcval, mils[0], _sync, _imu_data[0], _imu_data[1], _imu_data[2], _imu_data[3], _imu_data[4], _imu_data[5]])
+                    if self.dof == 6:
+                        self.csv.writerow([str(nw), rs, val[0], val[1], val[2], val[3], _rtcval, mils[0], _sync, _imu_data[0], _imu_data[1], _imu_data[2], _imu_data[3], _imu_data[4], _imu_data[5]])
+                    elif self.dof == 9:
+                        self.csv.writerow([str(nw), rs, val[0], val[1], val[2], val[3], _rtcval, mils[0], _sync, _imu_data[0], _imu_data[1], _imu_data[2], _imu_data[3], _imu_data[4], _imu_data[5], _magnetometer[0], _magnetometer[1], _magnetometer[2]])
                 if keyboard.is_pressed("e"):
                     self.csv_file.close()
                     break
