@@ -211,10 +211,10 @@ def read_rigid_body_csv(_pth):
     """
     _pth: path to the rigid body file
     """
-    df = pd.read_csv(_pth, skiprows=2, header=None)
+    df = pd.read_csv(_pth, skiprows=2, header=None, dtype=str)
 
     # get the start time of the capture
-    raw_df = pd.read_csv(_pth)
+    raw_df = pd.read_csv(_pth, dtype=str)
     cols_list = raw_df.columns     # first row which contains capture start time
     inx = [i for i, x in enumerate(cols_list) if x == "Capture Start Time"]
     st_time = cols_list[inx[0] + 1]
@@ -303,7 +303,8 @@ def read_rigid_body_csv(_pth):
 
     #reset index
     _rb_df = _rb_df.reset_index(drop=True)
-    _rb_df = _rb_df.astype(float)
+    _rb_df = _rb_df.apply(pd.to_numeric, errors='ignore')
+
 
     return _rb_df, st_time
 
