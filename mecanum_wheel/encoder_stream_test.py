@@ -14,6 +14,30 @@ import time
 from armbo import rs_time
 
 
+"""Fast serial code"""
+class ReadLine:
+    def __init__(self, s):
+        self.buf = bytearray()
+        self.s = s
+    
+    def readline(self):
+        i = self.buf.find(b"\n")
+        if i >= 0:
+            r = self.buf[:i+1]
+            self.buf = self.buf[i+1:]
+            return r
+        while True:
+            i = 2048
+            data = self.s.read(i)
+            i = data.find(b"\n")
+            if i >= 0:
+                r = self.buf + data[:i+1]
+                self.buf[0:] = data[i+1:]
+                return r
+            else:
+                self.buf.extend(data)
+
+
 
 class SerialPort(object):
     # Contains functions that enable communication between the docking station and the IMU watches
@@ -122,11 +146,16 @@ if __name__ == '__main__':
 
     # print(opts[0])
     # _filepath = opts[0][1]
-    _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\test"
+    # _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\test"
 
-    # myport = SerialPort("COM15", 115200, csv_path=_filepath, csv_enable=True)
-    myport = SerialPort("COM4", 115200, csv_path=_filepath, csv_enable=False)
-    # myport = SerialPort("COM4", 115200, csv_path="random", csv_enable=False)
-    # myport = SerialPort("COM4", 115200)
-    myport.run_program()
+    # # myport = SerialPort("COM15", 115200, csv_path=_filepath, csv_enable=True)
+    # myport = SerialPort("COM5", 115200, csv_path=_filepath, csv_enable=False)
+    # # myport = SerialPort("COM4", 115200, csv_path="random", csv_enable=False)
+    # # myport = SerialPort("COM4", 115200)
+    # myport.run_program()
 
+    import serial
+    ser = serial.Serial("COM5", 115200)
+    reader = ReadLine(ser)
+    while True:
+        print(len(reader.readline()))
