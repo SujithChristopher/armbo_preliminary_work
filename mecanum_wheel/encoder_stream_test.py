@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
     # print(opts[0])
     # _filepath = opts[0][1]
-    _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\ghn"
+    _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\test"
 
     # myport = SerialPort("COM15", 115200, csv_path=_filepath, csv_enable=True)
     myport = SerialPort("COM4", 115200, csv_path=_filepath, csv_enable=False)
