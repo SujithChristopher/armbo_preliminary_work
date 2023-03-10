@@ -18,7 +18,7 @@ from armbo import rs_time
 class SerialPort(object):
     # Contains functions that enable communication between the docking station and the IMU watches
 
-    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False, dof=6):
+    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False, dof=9):
         # Initialise serial payload
         self.count = 0
         self.plSz = 0
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     _filepath = r"C:\Users\CMC\Documents\openposelibs\pose\skateboard_gui\recording_programs\test_data\test"
 
     # myport = SerialPort("COM15", 115200, csv_path=_filepath, csv_enable=True)
-    myport = SerialPort("COM4", 115200, csv_path=_filepath, csv_enable=False)
+    myport = SerialPort("COM5", 115200, csv_path=_filepath, csv_enable=True, dof=9)
     # myport = SerialPort("COM4", 115200, csv_path="random", csv_enable=False)
     # myport = SerialPort("COM4", 115200)
     myport.run_program()
