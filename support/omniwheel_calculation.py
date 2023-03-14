@@ -101,21 +101,24 @@ def get_position(df):
     return df, ["x_val", "y_val"]
 
 
-def get_orientation(df):
+def get_orientation(df, column_name = "w"):
 
     """
     Calculate the angle of the chasis, with respect to initial frame
 
     df should have "w" column to calculate the angle
     """
+
+    if not column_name:
+        column_name = "w"
     
     _angle = []
     angle = 0
-    for i in range(len(df["w"])):
+    for i in range(len(df[column_name])):
         if i == 0:
             _angle.append(0)
         else:
-            angle = angle + (df["w"].iloc[i] + df["w"].iloc[i-1])*0.01
+            angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*0.01
             _angle.append(angle)
 
     df["theta"] = _angle
