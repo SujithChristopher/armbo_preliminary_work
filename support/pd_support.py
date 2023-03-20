@@ -322,3 +322,17 @@ def get_marker_name(val):
             "z":"m" + str(val) + "_z",}
 
     return _val
+
+def get_rb_marker_name(val):
+    # int value to marker name
+    """
+    this function is for rigid body markers
+    it generates the marker names for the rigid body markers
+    using the given integer value    
+    """
+    # create using dictionary
+    _val = {"x":"rb_marker_m" + str(val) + "_x",
+            "y":"rb_marker_m" + str(val) + "_y",
+            "z":"rb_marker_m" + str(val) + "_z",}
+
+    return _val
