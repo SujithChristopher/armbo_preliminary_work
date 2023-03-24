@@ -12,7 +12,7 @@ from more_itertools import locate
 def read_df_csv(filename, offset=2):
     """
     this function reads the csv file from motion capture system
-     and makes it into a dataframe and returns only useful information
+    and makes it into a dataframe and returns only useful information
 
     filename: input path to csv file from motive
     offset:to ignore the first two columns with time and frames generally
