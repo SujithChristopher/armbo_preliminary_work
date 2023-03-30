@@ -60,7 +60,8 @@ class SerialPort(object):
 
     def serial_read(self):
         """returns bool for valid read, also returns the data read"""
-        # print(self.ser_port.read())
+        print(self.ser_port.read())
+
 
         if (self.ser_port.read() == b'\xff') and (self.ser_port.read() == b'\xff'):
             self.connected = True
@@ -68,6 +69,7 @@ class SerialPort(object):
             self.plSz = self.ser_port.read()[0]
             chksum += self.plSz
             self.payload = self.ser_port.read(self.plSz - 1)
+            print(self.payload)
 
             chksum += sum(self.payload)
             chksum = bytes([chksum % 256])
