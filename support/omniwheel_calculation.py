@@ -1,15 +1,22 @@
 import numpy as np
+import polars as pl
 
 def set_zero(df, column_name = ["e_t", "e_rr", "e_rl"]):
     """
     Set the value of the column to 0
     """
     """resetting cart values to zero"""
+    inst = True
 
-    df[column_name[0]] = df[column_name[0]]- df[column_name[0]].iloc[0]
-    df[column_name[1]] = df[column_name[1]]- df[column_name[1]].iloc[0]
-    df[column_name[2]] = df[column_name[2]]- df[column_name[2]].iloc[0]
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False 
 
+    for i in column_name:
+        df = df.with_columns([pl.col(i).apply(lambda x: x - df[i][0])])
+
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
     return df
     
 
@@ -17,17 +24,25 @@ def get_angular_velocity(df, column_name = ["e_t", "e_rr", "e_rl"], ang_per_incr
     """
     Calculate the angular velocity of the robot
     """
+    inst = True
+
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False 
 
     # Calculate the angular velocity
     for name in column_name:
-        df[name + "_av"] = (df[name] * ang_per_increment).diff()/ del_t
-        df[name + "_av"] = df[name + "_av"]* np.pi/180
-    df = df.fillna(0)
-
+        df = df.with_columns([pl.col(name).apply(lambda x: x * ang_per_increment).alias(name + "_angle")])
+        df = df.with_columns([((pl.col(name + "_angle").diff()/ del_t)*np.pi/180).alias(name + "_av")])
+        # replace null values with 0
+        df = df.fill_null(0)
+    
     _ang_column = []
     for i in column_name:
         _ang_column.append(i + "_av")
-    
+
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
     return df, _ang_column
 
 
@@ -50,55 +65,64 @@ def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
     lx = 79 #half of the distance between the wheels
     ly = 122.5/2
     """
+    inst = True
 
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False 
 
-    # mat = np.array([[-y, 1, 0], [-x, 0, -1], [x, 0, -1]])
     mat = np.array([[-y, 1, 0], [-x, 0, -1], [x, 0, -1]])
     pmat = np.linalg.pinv(mat)
-    _vx = []
-    _vy = []
-    _w = []
+
+    my_dict = {"_vx":[],"_vy":[],"_w":[]}
 
     for i in range(len(df)):
-        val = np.array([df[column_name[0]].iloc[i], df[column_name[1]].iloc[i], df[column_name[2]].iloc[i]]).reshape(3,1)
+        val = np.array([df[column_name[0]][i], df[column_name[1]][i], df[column_name[2]][i]]).reshape(3,1)
         res = np.dot(pmat, val) * radius
-        _w.append(res[0][0])
-        _vx.append(res[1][0])
-        _vy.append(res[2][0])
-    df["w"] = _w
-    df["vx"] = _vx
-    df["vy"] = _vy
+        my_dict["_w"].append(res[0][0])
+        my_dict["_vx"].append(res[1][0])
+        my_dict["_vy"].append(res[2][0])
+
+    # add the calculated values to the dataframe
+    df = df.with_columns([pl.Series(name = "vx", values = my_dict["_vx"]),
+                        pl.Series(name = "vy", values = my_dict["_vy"]),
+                            pl.Series(name = "w", values = my_dict["_w"])])
+    
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
 
     return df, df.columns
 
-def get_position(df):
+def get_position(df, dt = 0.01):
     """
     Calculate the position of the robot
 
     df should have "vx", "vy", "w" columns to calculate the position
     """
+    inst = True
 
-    _xval = []
-    _yval = []
-    xf_disp = 0
-    yf_disp = 0
-    for i in range(len(df["vx"])):
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False 
+
+    my_dict = {"_x":[],"_y":[]}
+
+    for i in range(len(df)):
         if i == 0:
-            _xval.append(0)
-            _yval.append(0)
+            my_dict["_x"].append(0)
+            my_dict["_y"].append(0)
         else:
-            x_disp = 0.5*(df["vx"].iloc[i] + df["vx"].iloc[i-1])*0.01
-            y_disp = 0.5*(df["vy"].iloc[i] + df["vy"].iloc[i-1])*0.01
-            # print(y_disp)
-            xf_disp = xf_disp+x_disp
-            yf_disp = yf_disp+y_disp
-            _xval.append(xf_disp)
-            _yval.append(yf_disp)
+            my_dict["_x"].append(0.5*(df["vx"][i] + df["vx"][i-1])*dt)
+            my_dict["_y"].append(0.5*(df["vy"][i] + df["vy"][i-1])*dt)
 
-    df["x_val"] = _xval
-    df["y_val"] = _yval
+    # add the calculated values to the dataframe
+    df = df.with_columns([pl.Series(name = "x", values = my_dict["_x"]),
+                            pl.Series(name = "y", values = my_dict["_y"])])
     
-    return df, ["x_val", "y_val"]
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
+    
+    return df, ["x", "y"]
 
 
 def get_orientation(df, column_name = "w"):
@@ -108,19 +132,29 @@ def get_orientation(df, column_name = "w"):
 
     df should have "w" column to calculate the angle
     """
+    inst = True
+
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False
 
     if not column_name:
         column_name = "w"
-    
-    _angle = []
+
+    my_dict = {"_theta":[]}
     angle = 0
     for i in range(len(df[column_name])):
-        if i == 0:
-            _angle.append(0)
-        else:
-            angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*0.01
-            _angle.append(angle)
 
-    df["theta"] = _angle
+        if i == 0:
+            my_dict["_theta"].append(0)
+        else:
+            angle = angle + (df[column_name][i] + df[column_name][i-1])*0.01
+            my_dict["_theta"].append(angle)
+
+    # add the calculated values to the dataframe
+    df = df.with_columns([pl.Series(name = "theta", values = my_dict["_theta"])])
+
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
 
     return df, ["theta"]
