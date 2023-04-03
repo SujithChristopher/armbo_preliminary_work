@@ -12,7 +12,9 @@ import fpstimer
 import multiprocessing
 from threading import Thread
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from mecanum_wheel.encoder_stream_test import SerialPort
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', ".."))
+
+from orange_enc_stream import SerialPort
 from support.pymf import get_MF_devices as get_camera_list
 import getopt
 import argparse

@@ -34,9 +34,9 @@ class SerialPort(object):
             self.csv_file = open(csv_path+ "//imu01.csv", "w")
             self.csv = csv.writer(self.csv_file)
             if self.dof == 6:
-                self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz"])
+                self.csv.writerow(["sys_time","rust_time" ,"e_fr"])
             elif self.dof == 9:
-                self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz", "mx", "my", "mz"])
+                self.csv.writerow(["sys_time","rust_time" ,"e_fr"])
         self.triggered = True
         self.connected = False
         
@@ -85,20 +85,12 @@ class SerialPort(object):
     def run_program(self):
         while True:
             if self.serial_read():
-                val = struct.unpack("4l", self.payload[:16])    # encoder values
-                _rtc = struct.unpack("Q", self.payload[16:24])    # rtc values time delta
-                mils = struct.unpack("L", self.payload[24:28])
-                _sync = struct.unpack("c", self.payload[28:29])[0].decode("utf-8")
-                _imu_data = struct.unpack("6f", self.payload[29:53])
-                if len(self.payload) > 53:
-                    _magnetometer = struct.unpack("3f", self.payload[53:65])
+                val = struct.unpack("l", self.payload[:4])    # encoder values
+                _sync = "0"
 
                 sys.stdout.write("\r" + _sync)
                 sys.stdout.flush()
 
-                _rtcval = datetime.fromtimestamp(_rtc[0]).strftime("%Y-%m-%d %I.%M.%S.%f %p")
-
-                # # time_delta = struct.unpack("3H", self.payload[24:30])
                 rs = rs_time()
 
                 nw = None
@@ -108,9 +100,9 @@ class SerialPort(object):
 
                 if self.csv_enabled:
                     if self.dof == 6:
-                        self.csv.writerow([str(nw), rs, val[0], val[1], val[2], val[3], _rtcval, mils[0], _sync, _imu_data[0], _imu_data[1], _imu_data[2], _imu_data[3], _imu_data[4], _imu_data[5]])
+                        self.csv.writerow([str(nw), rs, val[0]])
                     elif self.dof == 9:
-                        self.csv.writerow([str(nw), rs, val[0], val[1], val[2], val[3], _rtcval, mils[0], _sync, _imu_data[0], _imu_data[1], _imu_data[2], _imu_data[3], _imu_data[4], _imu_data[5], _magnetometer[0], _magnetometer[1], _magnetometer[2]])
+                        self.csv.writerow([str(nw), rs, val[0]])
                 if keyboard.is_pressed("e"):
                     self.csv_file.close()
                     break

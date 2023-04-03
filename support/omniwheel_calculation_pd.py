@@ -6,9 +6,8 @@ def set_zero(df, column_name = ["e_t", "e_rr", "e_rl"]):
     """
     """resetting cart values to zero"""
 
-    df[column_name[0]] = df[column_name[0]]- df[column_name[0]].iloc[0]
-    df[column_name[1]] = df[column_name[1]]- df[column_name[1]].iloc[0]
-    df[column_name[2]] = df[column_name[2]]- df[column_name[2]].iloc[0]
+    for i in column_name:
+        df[i] = df[i] - df[i][0]
 
     return df
     
@@ -119,6 +118,30 @@ def get_orientation(df, column_name = "w"):
             _angle.append(0)
         else:
             angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*0.01
+            _angle.append(angle)
+
+    df["theta"] = _angle
+
+    return df, ["theta"]
+
+def get_orientation_dt(df, column_name = "w", dt = []):
+
+    """
+    Calculate the angle of the chasis, with respect to initial frame
+
+    df should have "w" column to calculate the angle
+    """
+
+    if not column_name:
+        column_name = "w"
+    
+    _angle = []
+    angle = 0
+    for i in range(len(df[column_name])):
+        if i == 0:
+            _angle.append(0)
+        else:
+            angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*dt[i]
             _angle.append(angle)
 
     df["theta"] = _angle

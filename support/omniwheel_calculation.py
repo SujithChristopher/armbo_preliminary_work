@@ -158,3 +158,38 @@ def get_orientation(df, column_name = "w"):
         df = df.to_pandas()
 
     return df, ["theta"]
+
+
+def get_orientation_dt(df, column_name = "w", dt = []):
+
+    """
+    Calculate the angle of the chasis, with respect to initial frame
+
+    df should have "w" column to calculate the angle
+    """
+    inst = True
+
+    if not isinstance(df, pl.DataFrame):
+        df = pl.from_pandas(df)
+        inst = False
+
+    if not column_name:
+        column_name = "w"
+
+    my_dict = {"_theta":[]}
+    angle = 0
+    for i in range(len(df[column_name])):
+
+        if i == 0:
+            my_dict["_theta"].append(0)
+        else:
+            angle = angle + (df[column_name][i] + df[column_name][i-1])*dt[i]
+            my_dict["_theta"].append(angle)
+
+    # add the calculated values to the dataframe
+    df = df.with_columns([pl.Series(name = "theta", values = my_dict["_theta"])])
+
+    if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
+        df = df.to_pandas()
+
+    return df, ["theta"]
