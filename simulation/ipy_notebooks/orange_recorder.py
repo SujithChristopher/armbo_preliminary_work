@@ -164,7 +164,7 @@ if __name__ == "__main__":
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
-        _folder_name = "omni_9dof_april_3_2023" # this is the parent folder name where the data will be saved
+        _folder_name = "omni_9dof_april_6_2023" # this is the parent folder name where the data will be saved
 
     else:
         print("Arguments passed")
