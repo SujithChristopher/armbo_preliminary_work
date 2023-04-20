@@ -104,20 +104,10 @@ def get_position(df, dt = 0.01):
     if not isinstance(df, pl.DataFrame):
         df = pl.from_pandas(df)
         inst = False 
-
-    my_dict = {"_x":[],"_y":[]}
-
-    for i in range(len(df)):
-        if i == 0:
-            my_dict["_x"].append(0)
-            my_dict["_y"].append(0)
-        else:
-            my_dict["_x"].append(0.5*(df["vx"][i] + df["vx"][i-1])*dt)
-            my_dict["_y"].append(0.5*(df["vy"][i] + df["vy"][i-1])*dt)
-
-    # add the calculated values to the dataframe
-    df = df.with_columns([pl.Series(name = "x", values = my_dict["_x"]),
-                            pl.Series(name = "y", values = my_dict["_y"])])
+    # # calculate the cumulative sum of the values multiplied by dt
+    
+    df = df.with_columns([(pl.col("vx").cumsum() * dt *0.5).alias("x"),
+                            (pl.col("vy").cumsum() * dt *0.5).alias("y")])
     
     if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
         df = df.to_pandas()
@@ -125,7 +115,7 @@ def get_position(df, dt = 0.01):
     return df, ["x", "y"]
 
 
-def get_orientation(df, column_name = "w"):
+def get_orientation(df, dt = 0.01, column_name = "w"):
 
     """
     Calculate the angle of the chasis, with respect to initial frame
@@ -141,18 +131,10 @@ def get_orientation(df, column_name = "w"):
     if not column_name:
         column_name = "w"
 
-    my_dict = {"_theta":[]}
-    angle = 0
-    for i in range(len(df[column_name])):
+    # calculate the cumulative sum of the values multiplied by dt
 
-        if i == 0:
-            my_dict["_theta"].append(0)
-        else:
-            angle = angle + (df[column_name][i] + df[column_name][i-1])*0.01
-            my_dict["_theta"].append(angle)
+    df = df.with_columns([(pl.col("w").cumsum() * dt *0.5).alias("theta")])
 
-    # add the calculated values to the dataframe
-    df = df.with_columns([pl.Series(name = "theta", values = my_dict["_theta"])])
 
     if not inst: # if the input is not a polars dataframe, convert it to pandas dataframe when returning
         df = df.to_pandas()

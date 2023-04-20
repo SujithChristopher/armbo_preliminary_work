@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import integrate
 
 def set_zero(df, column_name = ["e_t", "e_rr", "e_rl"]):
     """
@@ -77,22 +78,8 @@ def get_position(df):
     df should have "vx", "vy", "w" columns to calculate the position
     """
 
-    _xval = []
-    _yval = []
-    xf_disp = 0
-    yf_disp = 0
-    for i in range(len(df["vx"])):
-        if i == 0:
-            _xval.append(0)
-            _yval.append(0)
-        else:
-            x_disp = 0.5*(df["vx"].iloc[i] + df["vx"].iloc[i-1])*0.01
-            y_disp = 0.5*(df["vy"].iloc[i] + df["vy"].iloc[i-1])*0.01
-            # print(y_disp)
-            xf_disp = xf_disp+x_disp
-            yf_disp = yf_disp+y_disp
-            _xval.append(xf_disp)
-            _yval.append(yf_disp)
+    _xval = df["vx"].cumsum()*0.01*0.5
+    _yval = df["vy"].cumsum()*0.01*0.5
 
     df["x_val"] = _xval
     df["y_val"] = _yval
@@ -111,14 +98,7 @@ def get_orientation(df, column_name = "w"):
     if not column_name:
         column_name = "w"
     
-    _angle = []
-    angle = 0
-    for i in range(len(df[column_name])):
-        if i == 0:
-            _angle.append(0)
-        else:
-            angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*0.01
-            _angle.append(angle)
+    _angle = df[column_name].cumsum()*0.01
 
     df["theta"] = _angle
 
@@ -135,15 +115,6 @@ def get_orientation_dt(df, column_name = "w", dt = []):
     if not column_name:
         column_name = "w"
     
-    _angle = []
-    angle = 0
-    for i in range(len(df[column_name])):
-        if i == 0:
-            _angle.append(0)
-        else:
-            angle = angle + (df[column_name].iloc[i] + df[column_name].iloc[i-1])*dt[i]
-            _angle.append(angle)
-
-    df["theta"] = _angle
+    _angle = integrate.cumtrapz(df[column_name], dt, initial=0)
 
     return df, ["theta"]
