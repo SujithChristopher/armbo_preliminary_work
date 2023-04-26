@@ -1,7 +1,7 @@
 import numpy as np
 import polars as pl
 
-def set_zero(df, column_name = ["e_t", "e_rr", "e_rl"]):
+def set_zero(df, column_name = ["e_fr", "e_fl", "e_rr", "e_rl"]):
     """
     Set the value of the column to 0
     """
@@ -20,7 +20,7 @@ def set_zero(df, column_name = ["e_t", "e_rr", "e_rl"]):
     return df
     
 
-def get_angular_velocity(df, column_name = ["e_t", "e_rr", "e_rl"], ang_per_increment = 0.09, del_t = 0.01):
+def get_angular_velocity(df, column_name = ["e_fr", "e_fl", "e_rr", "e_rl"], ang_per_increment = 0.15, del_t = 0.01):
     """
     Calculate the angular velocity of the robot
     """
@@ -46,7 +46,7 @@ def get_angular_velocity(df, column_name = ["e_t", "e_rr", "e_rl"], ang_per_incr
     return df, _ang_column
 
 
-def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
+def get_directional_velocity(df, column_name, radius = 1, l = 1, w = 1):
 
     """
     Calculate the directional velocity of the robot
@@ -71,14 +71,13 @@ def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
         df = pl.from_pandas(df)
         inst = False 
 
-    mat = np.array([[-y, 1, 0], [-x, 0, -1], [x, 0, -1]]) # matrix for calculating the directional velocity
-    # mat = np.array([[y, 1, 0], [-x, 0, 1], [-x, 0, 1]])
+    mat = np.array([[-l-w , 1, -1], [l+w, 1, 1], [l+w, 1, -1],[-l-w, 1, 1]]) # matrix for calculating the directional velocity
     pmat = np.linalg.pinv(mat)
 
     my_dict = {"_vx":[],"_vy":[],"_w":[]}
 
     for i in range(len(df)):
-        val = np.array([df[column_name[0]][i], df[column_name[1]][i], df[column_name[2]][i]]).reshape(3,1)
+        val = df[column_name][i].to_numpy().reshape(4,1)
         res = np.dot(pmat, val) * radius
         my_dict["_w"].append(res[0][0])
         my_dict["_vx"].append(res[1][0])
