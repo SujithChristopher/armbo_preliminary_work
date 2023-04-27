@@ -18,7 +18,7 @@ from armbo import rs_time
 class SerialPort(object):
     # Contains functions that enable communication between the docking station and the IMU watches
 
-    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False, dof=9):
+    def __init__(self, serialport, serialrate=9600, csv_path="", csv_enable=False, single_file_protocol=False, dof=9, csv_name=None):
         # Initialise serial payload
         self.count = 0
         self.plSz = 0
@@ -30,8 +30,11 @@ class SerialPort(object):
 
         self.csv_enabled = csv_enable
         if csv_enable:
-            # self.csv_file = open(csv_path + "//imu01.csv", "w")
-            self.csv_file = open(csv_path+ "//imu01.csv", "w")
+            if csv_name is None:
+                self.csv_file = open(csv_path+ "//imu01.csv", "w")
+            else:
+                self.csv_file = open(csv_path+ "//" + str(csv_name) + ".csv", "w")
+                
             self.csv = csv.writer(self.csv_file)
             if self.dof == 6:
                 self.csv.writerow(["sys_time","rust_time" ,"e_fr", "e_fl", "e_rr", "e_rl", "rtc", "mils", "sync", "ax", "ay", "az", "gx", "gy", "gz"])

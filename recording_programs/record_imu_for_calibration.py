@@ -100,7 +100,7 @@ class RecordData:
                     self.start_recording = True
 
 
-    def run(self, cart_sensors):
+    def run(self, cart_sensors, csv_name = None):
         """run the program"""
         # run the program
 
@@ -115,7 +115,10 @@ class RecordData:
             
         if cart_sensors and not self.record_camera:
 
-            myport = SerialPort("COM5", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True, dof=9)
+            if csv_name:
+                myport = SerialPort("COM5", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True, dof=9, csv_name=csv_name)
+            else:
+                myport = SerialPort("COM5", 115200, csv_path=self._pth, csv_enable=True, single_file_protocol=True, dof=9)
             cart_sensors = Thread(target=myport.run_program)
             cart_sensors.start()
 
@@ -162,7 +165,7 @@ if __name__ == "__main__":
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
-        _folder_name = "imu_check" # this is the parent folder name where the data will be saved
+        _folder_name = "imu_calib_raw_april_27_2023" # this is the parent folder name where the data will be saved
 
     else:
         print("Arguments passed")
@@ -181,7 +184,7 @@ if __name__ == "__main__":
             record_sensors = False
 
     if record_camera or record_sensors:
-        _pth = os.path.join(os.path.dirname(__file__), "test_data",_folder_name, _name)
+        _pth = os.path.join(os.path.dirname(__file__), "test_data",_folder_name)
 
         if '\n' in _pth:
             _pth = _pth.replace('\n', '')
@@ -191,4 +194,4 @@ if __name__ == "__main__":
     time.sleep(1)
 
     record_data = RecordData(_pth=_pth, record_camera=record_camera)
-    record_data.run(cart_sensors=record_sensors)
+    record_data.run(cart_sensors=record_sensors, csv_name=_name)
