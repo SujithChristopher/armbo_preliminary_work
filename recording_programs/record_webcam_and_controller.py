@@ -85,7 +85,7 @@ class RecordData:
                     cv2.waitKey(1)
 
                 if keyboard.is_pressed('q'):  # if key 'q' is pressed 
-                    print('You Pressed A Key!, ending webcam')
+                    print('You Pressed a Key!, ending webcam')
                     cap.release()
                     cv2.destroyAllWindows()                
                     # self.kill_thread()  # finishing the loop
@@ -96,7 +96,7 @@ class RecordData:
                     break
                 
                 if keyboard.is_pressed('s'):  # if key 's' is pressed
-                    print('You Pressed A Key!, started recording from webcam')
+                    print('You Pressed a Key!, started recording from webcam')
                     self.start_recording = True
 
 
@@ -155,14 +155,14 @@ if __name__ == "__main__":
         print("No arguments passed, please enter manually")
 
         """Enter the respective parameters"""
-        record_camera = False
+        record_camera = True
         record_sensors = True
 
         if record_camera or record_sensors:
             _name = input("Enter the name of the recording: ")
         display = True
         _pth = None # this is default do not change, path gets updated by your input
-        _folder_name = "omni_9d0f_may_3_2023" # this is the parent folder name where the data will be saved
+        _folder_name = "omni_cam_9d0f_may_8_2023" # this is the parent folder name where the data will be saved
 
     else:
         print("Arguments passed")
