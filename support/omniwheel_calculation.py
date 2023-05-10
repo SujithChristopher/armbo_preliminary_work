@@ -46,7 +46,7 @@ def get_angular_velocity(df, column_name = ["e_t", "e_rr", "e_rl"], ang_per_incr
     return df, _ang_column
 
 
-def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
+def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1, rmat = None):
 
     """
     Calculate the directional velocity of the robot
@@ -75,6 +75,9 @@ def get_directional_velocity(df, column_name, radius = 1, x = 1, y = 1):
     # mat = np.array([[y, 1, 0], [-x, 0, 1], [-x, 0, 1]])
     pmat = np.linalg.pinv(mat)
 
+    if rmat is not None:
+        pmat = rmat @ pmat
+        
     my_dict = {"_vx":[],"_vy":[],"_w":[]}
 
     for i in range(len(df)):
