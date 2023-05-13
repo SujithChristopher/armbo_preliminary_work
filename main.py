@@ -47,7 +47,7 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_ARUCO_ORIGINAL)
 board = aruco.GridBoard_create(
     markersX=1,
     markersY=1,
-    markerLength=0.05,
+    markerLength=0.055,
     markerSeparation=0.01,
     dictionary=ARUCO_DICT)
 
@@ -343,7 +343,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             if ids is not None and len(ids) > 0:
                                 # Estimate the posture per each Aruco marker
                                 rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(
-                                    corners, 0.05,
+                                    corners, 0.04,
                                     cameraMatrix,
                                     distCoeffs)
                                 for rvec, tvec in zip(rotation_vectors, translation_vectors):
