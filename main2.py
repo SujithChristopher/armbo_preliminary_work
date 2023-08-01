@@ -21,7 +21,7 @@ from gui_box_v1 import Ui_MainWindow
 from support.support_mp4 import generate_pdf
 
 
-# mp_pose = mp.solutions.pose
+mp_pose = mp.solutions.pose
 
 """open file dialog and path selection"""
 calib_pth = ".//src//calib_aruco_dict_original_01.pickle"
@@ -140,8 +140,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.start_program.clicked.connect(self.start_process)
         self.set_orgin.clicked.connect(self.orign_set)
 
-        # self.mp_drawing = mp.solutions.drawing_utils
-        # self.mp_holistic = mp.solutions.holistic
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_holistic = mp.solutions.holistic
         self.start_p = False
         # self.start_process = False
         self.cur_time = 0
@@ -279,8 +279,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def runCam(self, progress_callback):
-        # mp_pose = mp.solutions.pose
-        # pose = mp_pose.PoseLandmark
+        mp_pose = mp.solutions.pose
+        pose = mp_pose.PoseLandmark
 
         yPos = 0
         xPos = 0
