@@ -11,14 +11,19 @@ import pandas as pd
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5 import QtCore
 from cv2 import aruco
 
 from scipy import signal
 
-from support.pymf import get_MF_devices as get_camera_list
+# from support.pymf import get_MF_devices as get_camera_list
 
-from gui_box_v1 import Ui_MainWindow
+from gui_box_v2 import Ui_MainWindow
 from support.support_mp4 import generate_pdf
+
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
 
 # mp_pose = mp.solutions.pose
@@ -119,6 +124,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        
+        # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
         self.setupUi(self)
         self.threadpool = QThreadPool()
         self.cam = cv2.VideoCapture(0)
@@ -130,7 +137,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.xPos = 0
         self.yPos = 0
-        self.initUi
+        self.initUi()
         self.pose = False
         self.data_points = np.nan
         self.data_points = np.array(self.data_points)
@@ -150,10 +157,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.cl_names = ["time", "X", "Y", "Z"]
 
         # selecting the webcam
-        self.device_list = get_camera_list()
-        print(self.device_list)
-        self.webcam_id = self.device_list.index("Lenovo FHD Webcam")
-        self.capture_device = cv2.VideoCapture(self.webcam_id)
+        # self.device_list = get_camera_list()
+        # print(self.device_list)
+        # self.webcam_id = self.device_list.index("Lenovo FHD Webcam")
+        self.capture_device = cv2.VideoCapture(0)
         
 
         self.cam_space = pd.DataFrame(columns=self.cl_names)
