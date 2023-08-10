@@ -52,7 +52,7 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_ARUCO_ORIGINAL)
 board = aruco.GridBoard_create(
     markersX=1,
     markersY=1,
-    markerLength=0.055,
+    markerLength=0.045,
     markerSeparation=0.01,
     dictionary=ARUCO_DICT)
 
@@ -355,7 +355,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                     distCoeffs)
                                 for rvec, tvec in zip(rotation_vectors, translation_vectors):
                                     self.colorImage = aruco.drawAxis(self.colorImage, cameraMatrix, distCoeffs, rvec,
-                                                                     tvec, 0.05)
+                                                                     tvec, 0.045)
                                     self.tvec_dist = tvec
 
                                     self.cam_space.loc[count, self.cl_names[0]] = self.time_float
