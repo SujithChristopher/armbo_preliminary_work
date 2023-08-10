@@ -1,5 +1,4 @@
 import os
-import pickle
 import sys
 import time
 
@@ -14,12 +13,21 @@ from PyQt5.QtGui import *
 from PyQt5 import QtCore
 from cv2 import aruco
 
+from PyQt5.QtWidgets import * 
+from PyQt5 import QtCore, QtGui
+
+import msgpack as mp
+import msgpack_numpy as mpn
+
 from scipy import signal
+import pickle
 
 # from support.pymf import get_MF_devices as get_camera_list
 
 from gui_box_v2 import Ui_MainWindow
 from support.support_mp4 import generate_pdf
+
+from pdf_py import run_analysis
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 
@@ -29,16 +37,18 @@ QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use h
 # mp_pose = mp.solutions.pose
 
 """open file dialog and path selection"""
-calib_pth = ".//src//calib_aruco_dict_original_01.pickle"
+calib_pth = ".//calibration//webcam_calibration.msgpack"
 print(str(calib_pth))
 # Check for camera calibration data
 if not os.path.exists(calib_pth):
     print("You need to calibrate the camera you'll be using. See calibration project directory for details.")
     exit()
-else:
-    f = open(calib_pth, "rb")
-    (cameraMatrix, distCoeffs) = pickle.load(f)
-    f.close()
+else:    
+    with open(calib_pth, "rb") as f:
+        webcam_calib = mp.Unpacker(f, object_hook=mpn.decode)
+        _temp = next(webcam_calib)
+        cameraMatrix = _temp[0]
+        distCoeffs = _temp[1]
     if cameraMatrix is None or distCoeffs is None:
         print(
             "Calibration issue. Remove ./calibration/CameraCalibration.pckl and recalibrate your camera with calibration_ChAruco.py.")
@@ -128,7 +138,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
         self.setupUi(self)
         self.threadpool = QThreadPool()
-        self.cam = cv2.VideoCapture(0)
+      
         self.yRes = 640
         self.xRes = 480
 
@@ -147,25 +157,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.start_program.clicked.connect(self.start_process)
         self.set_orgin.clicked.connect(self.orign_set)
 
-        # self.mp_drawing = mp.solutions.drawing_utils
-        # self.mp_holistic = mp.solutions.holistic
         self.start_p = False
-        # self.start_process = False
         self.cur_time = 0
         self.time_count = 0
         self.res = []
         self.cl_names = ["time", "X", "Y", "Z"]
 
         # selecting the webcam
-        # self.device_list = get_camera_list()
-        # print(self.device_list)
-        # self.webcam_id = self.device_list.index("Lenovo FHD Webcam")
-        self.capture_device = cv2.VideoCapture(0)
+        self.capture_device = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        self.capture_device.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.capture_device.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.capture_device.set(cv2.CAP_PROP_FPS, 30)
         
+        finish = QAction("Quit", self)
+        finish.triggered.connect(self.closeEventExit)
+        self.close_button_pressed = False
 
         self.cam_space = pd.DataFrame(columns=self.cl_names)
         self.cam_space = self.cam_space.astype(np.float32)
-        self.gen_report.clicked.connect(self.run_analysis)
+        self.gen_report.clicked.connect(run_analysis)
+        
+    def closeEventExit(self):
+        time.sleep(0.5)
+        self.close_button_pressed = True
+        self.capture_device.release()
+        self.close()
+        sys.exit()
 
     def orign_set(self):
 
@@ -180,7 +197,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if ret:
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             img = cv2.flip(img, 1)
-            gray = img[yPos * 2:yPos * 2 + yRes, xPos * 2:xPos * 2 + xRes].copy()
+            gray = img.copy()
 
             try:
                 corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, ARUCO_DICT,
@@ -197,7 +214,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 if ids is not None and len(ids) > 0:
                     # Estimate the posture per each Aruco marker
                     rotation_vectors, translation_vectors, _objPoints = aruco.estimatePoseSingleMarkers(
-                        corners, 0.05,
+                        corners, 0.04,
                         cameraMatrix,
                         distCoeffs)
                     for rvec, tvec in zip(rotation_vectors, translation_vectors):
@@ -238,39 +255,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def do_nothing(self):
         pass
 
-    def run_analysis(self):
-        self.cam_space = self.cam_space[:-1]
-        self.cam_space = self.cam_space.interpolate(method='linear', limit_direction='forward')
-        print(self.cam_space)
-        Nmedf = 5
-        camfdf = self.cam_space
-        for _col in camfdf:
-            camfdf[_col] = signal.medfilt(camfdf[_col], kernel_size=Nmedf)
-
-        plt.title("ROM")
-        plt.scatter(self.cam_space["X"], self.cam_space["Z"], c="r")
-        plt.savefig(".//src//figure_scatter.png")
-        plt.clf()
-
-        plt.subplot(3, 1, 1)
-        plt.title("Coordinates")
-        plt.plot(self.cam_space["time"], self.cam_space["X"], label="X", c="r")
-        plt.legend()
-
-        plt.subplot(3, 1, 2)
-        plt.plot(self.cam_space["time"], self.cam_space["Y"], label="Y", c="y")
-
-        plt.legend()
-
-        plt.subplot(3, 1, 3)
-        plt.plot(self.cam_space["time"], self.cam_space["Z"], label="Z", c="b")
-
-        plt.legend()
-
-        plt.savefig(".//src//figure.png")
-        a = generate_pdf(self)
-        print(a)
-
     def print_progress(self):
         pass
 
@@ -286,14 +270,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def runCam(self, progress_callback):
-        # mp_pose = mp.solutions.pose
-        # pose = mp_pose.PoseLandmark
-
-        yPos = 0
-        xPos = 0
-        yRes = self.yRes
-        xRes = self.xRes
-
         tr = True
         self.peaks = 0
 
@@ -308,13 +284,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         while True:
 
             # Capture frame-by-frame
+            if self.close_button_pressed:
+                break
+            
             ret, frame = self.capture_device.read()
             if ret:
                 # img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 img = frame
                 img = cv2.flip(img, 1)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                image = img[yPos * 2:yPos * 2 + yRes, xPos * 2:xPos * 2 + xRes].copy()
+                # image = img[yPos * 2:yPos * 2 + yRes, xPos * 2:xPos * 2 + xRes].copy()
+                image = img.copy()
 
                 self.colorImage = image
 
@@ -355,7 +335,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                     distCoeffs)
                                 for rvec, tvec in zip(rotation_vectors, translation_vectors):
                                     self.colorImage = aruco.drawAxis(self.colorImage, cameraMatrix, distCoeffs, rvec,
-                                                                     tvec, 0.045)
+                                                                     tvec, 0.04)
                                     self.tvec_dist = tvec
 
                                     self.cam_space.loc[count, self.cl_names[0]] = self.time_float
@@ -370,7 +350,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     except:
                         pass
                 flpimg = self.colorImage
-                flpimg = cv2.resize(flpimg, (640, 480))
+                flpimg = cv2.resize(flpimg, (960, 540))
                 h1, w1, ch = flpimg.shape
                 bytesPerLine = ch * w1
                 convertToQtFormat = QImage(flpimg.data.tobytes(), w1, h1, bytesPerLine, QImage.Format_RGB888)

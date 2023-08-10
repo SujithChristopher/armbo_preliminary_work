@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design_v1.ui'
+# Form implementation generated from reading ui file 'design_v2.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -11,65 +11,52 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
-
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1056, 609)
+        MainWindow.resize(1242, 609)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.video_disp = QtWidgets.QLabel(self.centralwidget)
-        self.video_disp.setGeometry(QtCore.QRect(20, 20, 720, 540))
+        self.video_disp.setGeometry(QtCore.QRect(20, 20, 960, 540))
         self.video_disp.setText("")
         self.video_disp.setObjectName("video_disp")
         self.start_button = QtWidgets.QPushButton(self.centralwidget)
-        self.start_button.setGeometry(QtCore.QRect(790, 380, 81, 31))
+        self.start_button.setGeometry(QtCore.QRect(1040, 390, 141, 31))
         self.start_button.setObjectName("start_button")
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(890, 430, 81, 31))
-        self.pushButton_2.setObjectName("pushButton_2")
         self.disp_pose = QtWidgets.QCheckBox(self.centralwidget)
-        self.disp_pose.setGeometry(QtCore.QRect(810, 330, 121, 31))
+        self.disp_pose.setGeometry(QtCore.QRect(1040, 340, 121, 31))
         self.disp_pose.setObjectName("disp_pose")
-        self.gen_report = QtWidgets.QPushButton(self.centralwidget)
-        self.gen_report.setGeometry(QtCore.QRect(790, 480, 81, 31))
-        self.gen_report.setObjectName("gen_report")
-        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setGeometry(QtCore.QRect(890, 480, 81, 31))
-        self.pushButton_4.setObjectName("pushButton_4")
         self.label_x = QtWidgets.QLabel(self.centralwidget)
-        self.label_x.setGeometry(QtCore.QRect(780, 40, 221, 41))
+        self.label_x.setGeometry(QtCore.QRect(1010, 100, 221, 41))
         font = QtGui.QFont()
         font.setFamily("Segoe Script")
         font.setPointSize(26)
         self.label_x.setFont(font)
         self.label_x.setObjectName("label_x")
         self.start_program = QtWidgets.QPushButton(self.centralwidget)
-        self.start_program.setGeometry(QtCore.QRect(790, 430, 81, 31))
+        self.start_program.setGeometry(QtCore.QRect(1040, 430, 141, 31))
         self.start_program.setObjectName("start_program")
         self.label_y = QtWidgets.QLabel(self.centralwidget)
-        self.label_y.setGeometry(QtCore.QRect(780, 80, 221, 41))
+        self.label_y.setGeometry(QtCore.QRect(1010, 140, 221, 41))
         font = QtGui.QFont()
         font.setFamily("Segoe Script")
         font.setPointSize(26)
         self.label_y.setFont(font)
         self.label_y.setObjectName("label_y")
         self.label_z = QtWidgets.QLabel(self.centralwidget)
-        self.label_z.setGeometry(QtCore.QRect(780, 120, 221, 41))
+        self.label_z.setGeometry(QtCore.QRect(1010, 180, 221, 41))
         font = QtGui.QFont()
         font.setFamily("Segoe Script")
         font.setPointSize(26)
         self.label_z.setFont(font)
         self.label_z.setObjectName("label_z")
         self.set_orgin = QtWidgets.QPushButton(self.centralwidget)
-        self.set_orgin.setGeometry(QtCore.QRect(890, 380, 81, 31))
+        self.set_orgin.setGeometry(QtCore.QRect(1040, 470, 141, 31))
         self.set_orgin.setObjectName("set_orgin")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1056, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1242, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -77,23 +64,18 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        
-        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.start_button.setText(_translate("MainWindow", "Initialize"))
-        self.pushButton_2.setText(_translate("MainWindow", "restart"))
         self.disp_pose.setText(_translate("MainWindow", "Display POSE"))
-        self.gen_report.setText(_translate("MainWindow", "Gen Report"))
-        self.pushButton_4.setText(_translate("MainWindow", "Print report"))
         self.label_x.setText(_translate("MainWindow", "0"))
         self.start_program.setText(_translate("MainWindow", "Start"))
         self.label_y.setText(_translate("MainWindow", "0"))
         self.label_z.setText(_translate("MainWindow", "0"))
-        self.set_orgin.setText(_translate("MainWindow", "Set Orgin"))
+        self.set_orgin.setText(_translate("MainWindow", "Reset Orgin"))
 
 
 if __name__ == "__main__":
