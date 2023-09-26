@@ -32,7 +32,8 @@ QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #en
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
-model = YOLO("./models_save/mip_ar_200e_noise.pt")
+# model = YOLO("./models_save/mip_ar_200e_noise.pt")
+model = YOLO("./models_save/best.pt")
 
 
 # mp_pose = mp.solutions.pose
@@ -55,12 +56,12 @@ else:
             "Calibration issue. Remove ./calibration/CameraCalibration.pckl and recalibrate your camera with calibration_ChAruco.py.")
         exit()
         
-inference = "YOLO"
+inference = "ARUCO"
 
 ARUCO_PARAMETERS = aruco.DetectorParameters()
 ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_MIP_36H12)
 detector = aruco.ArucoDetector(ARUCO_DICT, ARUCO_PARAMETERS)
-markerLength = 0.04
+markerLength = 0.05
 markerSeperation = 0.01
 
 board = aruco.GridBoard(
@@ -192,6 +193,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tvec_dist = None
         self.initial_value = True
         self.offset = np.array([0, 0, 0])
+        self.angle = np.array([0, 0, 0])
+        self.init_rmat = np.eye(3)
+        self.rmat = np.eye(3)
+        self.RMAT_TRIGGER = True
         
     def closeEventExit(self):
         time.sleep(0.5)
@@ -279,14 +284,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                             corners, ids, rejected_image_points = detector.detectMarkers(gray)
                             corners, ids, rejectedpoints,_ = detector.refineDetectedMarkers(image=gray,board=board ,detectedCorners=corners, detectedIds=ids, rejectedCorners=rejected_image_points, cameraMatrix=cameraMatrix, distCoeffs=distCoeffs)
-                            # rvec, tvec,_  = my_estimatePoseSingleMarkers(corners, marker_points, cameraMatrix, distCoeffs)
-                            
-                            print(corners, ids)
-
                             
                             if ids is not None and len(ids) > 0:
                                 # Estimate the posture per each Aruco marker
                                 rotation_vectors, translation_vectors, _objPoints = my_estimatePoseSingleMarkers(corners, marker_points, cameraMatrix, distCoeffs)
+                                
+                                
+                                if self.RMAT_TRIGGER:
+                                    self.init_rmat = cv2.Rodrigues(rotation_vectors[0][0])[0]
+                                    self.RMAT_TRIGGER = False
+                                else:
+                                    
+                                    self.rmat = cv2.Rodrigues(rotation_vectors[0][0])[0]
+                                    
+                                    # _delr = self.rmat @ self.init_rmat.T
+                                    _delr = self.rmat
+                                    
+                                    ang_x = np.rad2deg(np.arctan2(_delr[2][1], _delr[2][2]))
+                                    ang_y = np.rad2deg(np.arctan2(-_delr[2][0], np.sqrt(_delr[2][1]**2 + _delr[2][2]**2)))
+                                    ang_z = np.rad2deg(np.arctan2(_delr[1][0], _delr[0][0]))
+                                    
+                                    self.angle = np.array([ang_x, ang_y, ang_z])  
+                                
+                                self.tvec_dist = translation_vectors[0]
                                 for rvec, tvec in zip(rotation_vectors, translation_vectors):
                                     self.colorImage = aruco.drawDetectedMarkers(img, corners=corners, ids=ids)
                                     self.colorImage = cv2.drawFrameAxes(img, cameraMatrix, distCoeffs, rvec, tvec, 0.05)
@@ -324,6 +344,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             if ids is not None and len(ids) > 0:
                                 # Estimate the posture per each Aruco marker
                                 rotation_vectors, translation_vectors, _objPoints = my_estimatePoseSingleMarkers(corners, marker_points, cameraMatrix, distCoeffs)
+                                
+                                
+                                if self.RMAT_TRIGGER:
+                                    self.init_rmat = cv2.Rodrigues(rotation_vectors[0][0])[0]
+                                    self.RMAT_TRIGGER = False
+                                else:
+                                    
+                                    self.rmat = cv2.Rodrigues(rotation_vectors[0][0])[0]
+                                    
+                                    # _delr = self.rmat @ self.init_rmat.T
+                                    _delr = self.rmat
+                                    
+                                    ang_x = np.rad2deg(np.arctan2(_delr[2][1], _delr[2][2]))
+                                    ang_y = np.rad2deg(np.arctan2(-_delr[2][0], np.sqrt(_delr[2][1]**2 + _delr[2][2]**2)))
+                                    ang_z = np.rad2deg(np.arctan2(_delr[1][0], _delr[0][0]))
+                                    
+                                    self.angle = np.array([ang_x, ang_y, ang_z])  
+                                
                                 self.tvec_dist = translation_vectors[0]
                                 for rvec, tvec in zip(rotation_vectors, translation_vectors):
                                     self.colorImage = aruco.drawDetectedMarkers(img, corners=corners, ids=ids)
@@ -359,12 +397,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         if (self.initial_value == True) and (self.tvec_dist is not None):
                             self.offset = self.tvec_dist[0]
                             self.initial_value = False
+                        # cordinate
+                        # self.label_x.setText(str(f"X {round((self.tvec_dist[0][0] - self.offset[0])*100, 2)} cm"))
+                        # self.label_y.setText(str(f"Y {round((self.tvec_dist[0][1] - self.offset[1])*100, 2)} cm"))
+                        # self.label_z.setText(str(f"Z {round((self.tvec_dist[0][2] - self.offset[2])*100, 2)} cm"))
                         
-                        self.label_x.setText(str(f"X {round((self.tvec_dist[0][0] - self.offset[0])*100, 2)} cm"))
-                        self.label_y.setText(str(f"Y {round((self.tvec_dist[0][1] - self.offset[1])*100, 2)} cm"))
-                        self.label_z.setText(str(f"Z {round((self.tvec_dist[0][2] - self.offset[2])*100, 2)} cm"))
+                        # angle
+                        self.label_x.setText(str(f"aX {round(self.angle[0], 2)} deg"))
+                        self.label_y.setText(str(f"aY {round(self.angle[1], 2)} deg"))
+                        self.label_z.setText(str(f"aZ {round(self.angle[2], 2)} deg"))
                         
-                        print(self.offset[0] - self.tvec_dist[0][0])
+                        # print(self.offset[0] - self.tvec_dist[0][0])
                     except:
                         pass
 
